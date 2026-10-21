@@ -1,0 +1,101 @@
+# CI di SiteIQ: test completi + conformità della superficie BEST.
+# Nessun deploy: la destinazione non è ancora decisa.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.14"
+  BEST_VALIDATE_VERSION: "0.4.2"
+
+jobs:
+  test:
+    name: Tests (pytest + Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      # Chromium del crawler: binari in cache per versione di Playwright,
+      # librerie di sistema installate a ogni run (non stanno nella cache).
+      - name: Read Playwright version
+        id: playwright
+        run: echo "version=$(python -c 'import importlib.metadata as m; print(m.version("playwright"))')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: |
+          python -m playwright install-deps chromium
+          python -m playwright install chromium
+
+      # conftest.py isola l'ambiente (DB/report temporanei, host privati ammessi
+      # per le fixture locali, nessuna email). Alcuni test usano la rete pubblica
+      # (DNS di example.com, API WPVulnerability).
+      - name: Run tests
+        working-directory: backend
+        run: python -m pytest tests/ -q -ra
+
+  best-conformance:
+    name: BEST conformance (best-validate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      # Il manifest e gli endpoint non richiedono Chromium: la validazione non
+      # avvia analisi (l'unico POST è un comando di tipo sconosciuto, rifiutato).
+      - name: Start SiteIQ
+        working-directory: backend
+        env:
+          PUBLIC_BASE_URL: http://127.0.0.1:8000
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/uvicorn.log" 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8000/health > /dev/null && exit 0
+            sleep 1
+          done
+          echo "SiteIQ did not start"; cat "$RUNNER_TEMP/uvicorn.log"; exit 1
+
+      - name: Validate the BEST surface
+        run: npx --yes "@behavioralstate/best-validate@${BEST_VALIDATE_VERSION}" http://127.0.0.1:8000
+
+      - name: Server log
+        if: always()
+        run: cat "$RUNNER_TEMP/uvicorn.log" || true

@@ -1,0 +1,16 @@
+# Dipendenze SiteIQ (FastAPI + crawler Playwright). Unico file: installa con
+#   pip install -r requirements.txt
+fastapi==0.142.2
+uvicorn[standard]==0.54.0   # [standard]: include websockets per /ws/{job_id}
+httpx==0.28.1
+jsonschema==4.26.0
+playwright==1.63.0
+axe-playwright-python==0.1.8
+packaging==26.3
+
+# --- Test (dev) ---
+pytest==9.1.1
+
+# --- Post-install: installa i browser di Playwright ---
+# python3 -m playwright install chromium
+# (nei test usa anche chromium-headless-shell; installa: python3 -m playwright install chromium)

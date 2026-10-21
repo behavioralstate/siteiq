@@ -1,0 +1,38 @@
+{
+  "description": "Findings of a completed analysis: one entry per deterministic check (security headers, SEO, accessibility, performance, HTTP) and per WordPress core or plugin verification. Each finding has a stable id that means the same check in every analysis. The list is empty while the analysis is still running or when it failed; status tells which. Labels and details are in Italian.",
+  "parameters": {
+    "type": "object",
+    "required": ["analysisId"],
+    "properties": {
+      "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+      "category": { "enum": ["development", "seo", "security", "accessibility", "performance", "wordpress"], "description": "Only findings of this category." },
+      "status": { "enum": ["ok", "warn", "error"], "description": "Only findings with this status." }
+    },
+    "additionalProperties": false
+  },
+  "response": {
+    "type": "object",
+    "required": ["analysisId", "status", "findings"],
+    "properties": {
+      "analysisId": { "type": "string" },
+      "status": { "enum": ["pending", "running", "completed", "failed"] },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "category", "status", "label", "detail"],
+          "properties": {
+            "id": { "type": "string", "description": "Stable check identifier, e.g. security.content-security-policy or wordpress.plugin.contact-form-7." },
+            "category": { "type": "string" },
+            "status": { "enum": ["ok", "warn", "error"], "description": "ok: passed; warn: worth fixing; error: a problem." },
+            "label": { "type": "string" },
+            "detail": { "type": "string" },
+            "references": { "type": "array", "items": { "type": "string" }, "description": "CVE or advisory identifiers, for WordPress findings." }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SiteCrawled",
+  "description": "The page has been fetched and measured in a headless browser. Checks are computed next; when pageStatus is not ok the analysis ends with SiteAnalysisFailed.",
+  "type": "object",
+  "required": ["analysisId", "url", "pageStatus", "httpStatus", "redirects", "isWordPress"],
+  "properties": {
+    "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "url": { "type": "string" },
+    "pageStatus": { "enum": ["ok", "error", "skipped"], "description": "ok: page loaded; error: unreachable or HTTP error; skipped: excluded by the site's robots.txt." },
+    "httpStatus": { "type": "integer", "minimum": 0, "maximum": 599, "description": "Final HTTP status; 0 when no response was received." },
+    "redirects": { "type": "integer", "minimum": 0, "description": "Number of redirects followed before the final response." },
+    "isWordPress": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

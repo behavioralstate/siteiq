@@ -1,0 +1,2 @@
+/* Fixture: load CSS leggero ma reale per forzare alcuni vitals misurabili */
+body { font-family: system-ui; color: #222; }

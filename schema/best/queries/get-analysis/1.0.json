@@ -1,0 +1,39 @@
+{
+  "description": "Current state of one analysis started with AnalyzeSite: whether it is still running, how it ended, and how many findings it produced. Analyses are kept in memory for about an hour after they finish.",
+  "parameters": {
+    "type": "object",
+    "required": ["analysisId"],
+    "properties": {
+      "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$", "description": "From the data of any event of the analysis." }
+    },
+    "additionalProperties": false
+  },
+  "response": {
+    "type": "object",
+    "required": ["analysisId", "url", "status", "requestedAt", "completedAt", "findingCounts", "failure"],
+    "properties": {
+      "analysisId": { "type": "string" },
+      "url": { "type": "string" },
+      "status": { "enum": ["pending", "running", "completed", "failed"] },
+      "requestedAt": { "type": "string", "format": "date-time" },
+      "completedAt": { "type": ["string", "null"], "format": "date-time" },
+      "findingCounts": {
+        "type": ["object", "null"],
+        "properties": {
+          "ok": { "type": "integer" },
+          "warn": { "type": "integer" },
+          "error": { "type": "integer" }
+        }
+      },
+      "failure": {
+        "type": ["object", "null"],
+        "required": ["reason", "message"],
+        "properties": {
+          "reason": { "type": "string", "description": "Same codes as SiteAnalysisFailed." },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}

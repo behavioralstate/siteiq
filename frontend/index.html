@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="web.landing.page_title">SiteIQ — L'analisi del tuo sito, spiegata in italiano</title>
+  <link rel="alternate" type="application/json" href="/.well-known/best" title="BEST service manifest">
+  <meta name="description" content="SiteIQ scansiona performance, accessibilità, sicurezza e SEO del tuo sito, e l'AI ti dice in italiano cosa sistemare e perché. Ogni consiglio è agganciato al dato che lo giustifica." data-i18n-attr="content:web.landing.meta_description">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%231F2A38'/%3E%3Cpath d='M34 18l-2 14h6l-10 14 2-14h-6l10-14z' fill='%23DDEFE0'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/landing.css">
+</head>
+<body>
+  <div class="app">
+    <div class="panel">
+
+      <!-- Navbar: logo | menu | lingua | CTA pill -->
+      <header class="site-header">
+        <div class="container">
+          <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L4 14h6l-1 7 9-11h-6l1-7z"/></svg></span>
+            SiteIQ
+          </a>
+          <nav class="site-nav" aria-label="Principale" data-i18n-attr="aria-label:web.landing.nav_label">
+            <a href="#come-funziona" data-i18n="web.landing.nav_how">Come funziona</a>
+            <a href="#cose" class="nav-space" data-i18n="web.landing.nav_what">Cosa analizza</a>
+            <a href="#faq" class="nav-space" data-i18n="web.landing.nav_faq">FAQ</a>
+            <div class="lang-switch" role="group" aria-label="Lingua" data-i18n-attr="aria-label:web.common.language">
+              <button type="button" data-set-locale="it-IT" lang="it">IT</button>
+              <button type="button" data-set-locale="en-GB" lang="en">EN</button>
+            </div>
+            <a class="nav-cta" href="#analisi" data-i18n="web.landing.request_analysis">Richiedi un'analisi</a>
+          </nav>
+        </div>
+      </header>
+
+      <main id="main">
+
+        <!-- Hero: anteprima report = momento memorabile -->
+        <section class="hero">
+          <div class="container">
+            <div class="hero-grid">
+              <div class="hero-in">
+                <span class="hero-kicker" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/><path d="M12 8v4l2 2"/></svg>Audit · AI · WCAG</span>
+                <h1 data-i18n-html="web.landing.hero_title">Capire il tuo sito, <br>in una pagina.</h1>
+                <p class="lede" data-i18n="web.landing.hero_lede">Scansioniamo performance, accessibilità, sicurezza e SEO. L'AI ti dice la cosa più urgente, perché conta, e come sistemarla. Ogni consiglio è agganciato al dato che lo giustifica.</p>
+                <div class="hero-cta">
+                  <a class="btn btn-primary btn-arrow" href="#analisi"><span data-i18n="web.landing.request_analysis">Richiedi un'analisi</span> <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                  <span class="hero-note" data-i18n="web.landing.hero_note">gratis · 1 pagina · senza account</span>
+                </div>
+                <div class="hero-trust">
+                  <span class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="web.landing.trust_no_hallucinations">Nessuna allucinazione</span></span>
+                  <span class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>WCAG 2.2</span>
+                  <span class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="web.landing.trust_real_data">Dati reali</span></span>
+                </div>
+              </div>
+
+              <div class="report-ghost" aria-hidden="true">
+                <div class="ghost-head">
+                  <span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="web.report.verdict">Verdetto</span></span>
+                  <span class="ghost-score"><span class="big">72</span><span class="out">/100</span></span>
+                </div>
+                <div class="ghost-bars">
+                  <div class="ghost-bar">
+                    <div class="gb-row"><span class="nm" data-i18n="categories.performance">Performance</span><span class="vl">65</span></div>
+                    <div class="gb-track"><div class="gb-range gb-blue"></div></div>
+                  </div>
+                  <div class="ghost-bar">
+                    <div class="gb-row"><span class="nm" data-i18n="categories.accessibility">Accessibilità</span><span class="vl">92</span></div>
+                    <div class="gb-track"><div class="gb-range gb-mint"></div></div>
+                  </div>
+                  <div class="ghost-bar">
+                    <div class="gb-row"><span class="nm" data-i18n="categories.security">Sicurezza</span><span class="vl">63</span></div>
+                    <div class="gb-track"><div class="gb-range gb-peach"></div></div>
+                  </div>
+                </div>
+                <div class="ghost-footer"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="web.landing.ghost_footer">Ogni punteggio agganciato alla sua evidenza</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Come funziona (sequenza) -->
+        <section class="section" id="come-funziona">
+          <div class="container">
+            <span class="section-tag" data-i18n="web.landing.nav_how">Come funziona</span>
+            <h2 data-i18n="web.landing.how_title">Tre passi, nessuna attrezzatura.</h2>
+            <p class="section-intro" data-i18n="web.landing.how_intro">Inserisci l'URL, verifichi l'email, ricevi il report. Punto.</p>
+            <div class="steps">
+              <div class="step">
+                <span class="n" aria-hidden="true">1</span>
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></div>
+                <h3 data-i18n="web.landing.step1_title">Scansioniamo il sito</h3>
+                <p data-i18n="web.landing.step1_text">Dati reali con strumenti standard: Core Web Vitals, axe-core, header di sicurezza, SEO.</p>
+              </div>
+              <div class="step">
+                <span class="n" aria-hidden="true">2</span>
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.6V12a6 6 0 0 0 3 8.2M16 6a4 4 0 0 1 1.6 7.7v1.6A6 6 0 0 1 14 22"/></svg></div>
+                <h3 data-i18n="web.landing.step2_title">L'AI interpreta i dati</h3>
+                <p data-i18n="web.landing.step2_text">Un modello spiega cosa va sistemato, perché conta, e in che ordine.</p>
+              </div>
+              <div class="step">
+                <span class="n" aria-hidden="true">3</span>
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+                <h3 data-i18n="web.landing.step3_title">Ricevi il report</h3>
+                <p data-i18n="web.landing.step3_text">Documento via email e pagina verificabile. Ogni consiglio è tracciato al dato.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Cosa analizza (feature cards pastel + icone) -->
+        <section class="section" id="cose">
+          <div class="container">
+            <span class="section-tag" data-i18n="web.landing.nav_what">Cosa analizza</span>
+            <h2 data-i18n="web.landing.what_title">Quattro aree, un solo report.</h2>
+            <p class="section-intro" data-i18n="web.landing.what_intro">Non 32 analizzatori da decifrare: un verdetto chiaro, subito.</p>
+            <div class="area-grid">
+              <div class="area-card area-blue">
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+                <h3 data-i18n="categories.performance">Performance</h3>
+                <p data-i18n="web.landing.area_performance">Core Web Vitals: LCP, CLS, FCP, TTFB. Quanto è veloce per gli utenti reali.</p>
+                <span class="area-stat">Core Web Vitals</span>
+              </div>
+              <div class="area-card area-mint">
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9M12 3a9 9 0 0 0-9 9M12 21a9 9 0 0 0 9-9M12 21a9 9 0 0 1-9-9"/><circle cx="12" cy="12" r="1.5"/></svg></div>
+                <h3 data-i18n="categories.accessibility">Accessibilità</h3>
+                <p data-i18n="web.landing.area_accessibility">WCAG 2.2: contrasto, alt text, landmarks, navigazione da tastiera e screen reader.</p>
+                <span class="area-stat">WCAG 2.2 AA</span>
+              </div>
+              <div class="area-card area-peach">
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                <h3 data-i18n="categories.security">Sicurezza</h3>
+                <p data-i18n="web.landing.area_security">Header di sicurezza: HSTS, CSP, X-Frame-Options. Se è WordPress, anche le vulnerabilità note.</p>
+                <span class="area-stat">Header + WordPress</span>
+              </div>
+              <div class="area-card area-lilac">
+                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16M8 6v12M16 6v12"/></svg></div>
+                <h3 data-i18n="categories.seo">SEO</h3>
+                <p data-i18n="web.landing.area_seo">Title, meta description, heading, canonical, dati strutturati. La base per essere trovati.</p>
+                <span class="area-stat">On-page</span>
+              </div>
+            </div>
+
+            <!-- KPI -->
+            <div class="kpi-row">
+              <div class="kpi"><div class="v">4</div><div class="l" data-i18n="web.landing.kpi_areas">aree analizzate</div></div>
+              <div class="kpi"><div class="v" data-i18n="web.landing.kpi_pages_value">1&nbsp;pg</div><div class="l" data-i18n="web.landing.kpi_free">analisi gratuita</div></div>
+              <div class="kpi"><div class="v">100%</div><div class="l" data-i18n="web.landing.kpi_real_data">dati reali</div></div>
+              <div class="kpi"><div class="v">0</div><div class="l" data-i18n="web.landing.kpi_hallucinations">allucinazioni</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAQ accordion -->
+        <section class="section" id="faq">
+          <div class="container">
+            <span class="section-tag" data-i18n="web.landing.faq_tag">Domande</span>
+            <h2 data-i18n="web.landing.nav_faq">FAQ</h2>
+            <div class="faq-row">
+              <div class="faq-item">
+                <button class="faq-q" aria-expanded="false"><span data-i18n="web.landing.faq1_q">È davvero gratuito?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+                <div class="faq-a"><p data-i18n="web.landing.faq1_a">Sì: un'analisi per email confermata, senza account. Ti scriviamo solo il link di verifica.</p></div>
+              </div>
+              <div class="faq-item">
+                <button class="faq-q" aria-expanded="false"><span data-i18n="web.landing.faq2_q">Quali dati raccogliete?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+                <div class="faq-a"><p data-i18n="web.landing.faq2_a">Solo i segnali tecnici della pagina che inserisci: Core Web Vitals, accessibilità, header, SEO. Nessun dato personale.</p></div>
+              </div>
+              <div class="faq-item">
+                <button class="faq-q" aria-expanded="false"><span data-i18n="web.landing.faq3_q">Come evitate le allucinazioni?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+                <div class="faq-a"><p data-i18n="web.landing.faq3_a">Ogni raccomandazione è agganciata a un dato misurato (contrasto, header, violazioni axe). Se il dato manca, il consiglio non c'è.</p></div>
+              </div>
+              <div class="faq-item">
+                <button class="faq-q" aria-expanded="false"><span data-i18n="web.landing.faq4_q">Rilevate anche WordPress?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+                <div class="faq-a"><p data-i18n="web.landing.faq4_a">Sì: versione core, plugin e vulnerabilità note pubbliche. Il dettaglio lo trovi nel report.</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analisi: form lead (CTA scura) + stadi conferma/scan -->
+        <section class="section" id="analisi">
+          <div class="container">
+            <div class="cta-wrap">
+              <div class="cta-grid">
+                <div>
+                  <h2 data-i18n="web.landing.request_analysis">Richiedi un'analisi</h2>
+                  <p class="sec" data-i18n="web.landing.cta_text">Lascia il tuo sito e una email. Ti mandiamo un link di conferma; appena confermi, sblocchi l'analisi gratuita.</p>
+                  <div class="why">
+                    <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="web.landing.why_free">Gratis, senza account</span></span>
+                    <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="web.landing.why_one_page">Una pagina per email confermata</span></span>
+                    <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/></svg><span data-i18n="web.landing.why_report">Report su email + pagina</span></span>
+                  </div>
+                </div>
+                <div>
+                  <!-- Stadio 1: request lead -->
+                  <div id="stage-lead">
+                    <form class="lead-form" id="lead-form" novalidate>
+                      <div class="field">
+                        <label for="lead-url" data-i18n="web.landing.your_site">Il tuo sito</label>
+                        <input type="url" id="lead-url" name="url" placeholder="https://iltuosito.it" required inputmode="url" autocomplete="url" spellcheck="false" data-i18n-attr="placeholder:web.common.url_placeholder">
+                      </div>
+                      <div class="field">
+                        <label for="lead-email" data-i18n="web.landing.your_email">La tua email</label>
+                        <input type="email" id="lead-email" name="email" placeholder="nome@azienda.it" required autocomplete="email" spellcheck="false" data-i18n-attr="placeholder:web.landing.email_placeholder">
+                      </div>
+                      <button type="submit" class="btn btn-primary btn-arrow"><span data-i18n="web.landing.get_link">Ricevi il link</span> <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+                    </form>
+                    <p class="form-hint" data-i18n="web.landing.no_personal_data">Nessun dato personale: ti scriviamo solo il link di verifica.</p>
+                    <p class="field-error" id="lead-error" role="alert" hidden></p>
+                  </div>
+
+                  <!-- Stadio 2: waiting -->
+                  <div id="stage-wait" hidden>
+                    <h3 style="color:#fff;margin-bottom:8px" data-i18n="web.landing.check_email_title">Controlla la tua email</h3>
+                    <p class="form-hint" style="color:rgba(255,255,255,.85)"><span data-i18n="web.landing.check_email_before">Ti abbiamo mandato un link di conferma a</span> <strong id="wait-email" style="color:#fff"></strong><span data-i18n="web.landing.check_email_after">. Apri la mail e clicca per sbloccare l'analisi.</span></p>
+                    <p class="form-hint"><span data-i18n="web.landing.not_arrived">Non è arrivata? Controlla spam, oppure</span> <a href="#" id="wait-retry" style="color:#A7E0C0" data-i18n="web.landing.request_again">richiedi di nuovo</a>.</p>
+                  </div>
+
+                  <!-- Stadio 3: confirmed -> scan -->
+                  <div id="stage-scan" hidden>
+                    <h3 style="color:#fff;margin-bottom:8px" data-i18n="web.landing.confirmed_title">Email confermata</h3>
+                    <p class="form-hint" style="color:rgba(255,255,255,.85)"><span data-i18n="web.landing.ready_before">Il tuo sito</span> <strong id="scan-url" style="color:#fff"></strong> <span data-i18n="web.landing.ready_after">è pronto per l'analisi gratuita.</span></p>
+                    <p style="margin-top:14px"><button class="btn btn-primary btn-arrow" id="scan-btn"><span data-i18n="web.landing.start_analysis">Avvia l'analisi</span> <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></p>
+                    <div class="scan-progress" id="scan-progress" hidden role="status" aria-live="polite">
+                      <p id="scan-status" data-i18n="web.landing.scan_in_progress">Analisi in corso…</p>
+                    </div>
+                    <div class="scan-report-box">
+                      <div id="scan-report" hidden></div>
+                    </div>
+                    <p class="field-error" id="scan-error" role="alert" hidden></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer">
+        <div class="container">
+          <span><b>SiteIQ</b> · <span data-i18n="web.landing.footer_tagline">analisi dei siti spiegata</span></span>
+          <span data-i18n="web.landing.footer_areas">Performance · Accessibilità · Sicurezza · SEO</span>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script src="/static/i18n.js"></script>
+  <script src="/static/app.js"></script>
+  <script src="/static/report.js"></script>
+  <script>
+    // Accordion FAQ (animazione di risposta: plus ↔ minus)
+    document.querySelectorAll(".faq-item").forEach((item) => {
+      const btn = item.querySelector(".faq-q");
+      btn.addEventListener("click", () => {
+        const open = item.classList.toggle("open");
+        btn.setAttribute("aria-expanded", String(open));
+      });
+    });
+  </script>
+</body>
+</html>

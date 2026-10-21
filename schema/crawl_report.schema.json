@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siteiq.local/schema/crawl_report.schema.json",
+  "title": "CrawlReport",
+  "description": "Output normalizzato del crawler. Contratto d'ingresso per il prompt LLM. Nessun dato a runtime; ogni finding è referenziabile da final_report.evidence_ref.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "url", "scanned_at", "pages"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "url": { "type": "string", "format": "uri" },
+    "scanned_at": { "type": "string", "format": "date-time" },
+    "scan_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pages_requested": { "type": "integer", "minimum": 1 },
+        "pages_returned": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/page" }
+    }
+  },
+  "$defs": {
+    "page": {
+      "title": "PageReport",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "url", "status", "http_status"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^p[0-9]{3}$" },
+        "url": { "type": "string", "format": "uri" },
+        "status": { "enum": ["ok", "error", "skipped"] },
+        "http_status": { "type": "integer", "minimum": 0, "maximum": 599, "description": "0 = nessuna risposta HTTP (errore di rete/skip)" },
+        "redirect_chain": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "maxItems": 10
+        },
+        "vitals": { "$ref": "#/$defs/vitals", "description": "Presente solo per pagine ok" },
+        "accessibility": {
+          "type": "object",
+          "properties": {
+            "violations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "rule", "impact", "nodes"],
+                "properties": {
+                  "id": { "type": "string", "pattern": "^a[0-9]{4}$" },
+                  "rule": { "type": "string", "description": "ID axe-core, es. aria-required-children" },
+                  "impact": { "enum": ["minor", "moderate", "serious", "critical"] },
+                  "nodes": { "type": "array", "items": { "type": "object" } }
+                }
+              }
+            },
+            "contrast_violations": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "seo": {
+          "type": "object",
+          "properties": {
+            "title": { "type": ["string", "null"] },
+            "title_length": { "type": ["integer", "null"], "minimum": 0 },
+            "meta_description": { "type": ["string", "null"] },
+            "headings": { "type": "object", "patternProperties": { "^h[1-6]$": { "type": "integer" } } },
+            "canonical": { "type": ["string", "null"] },
+            "hreflang_count": { "type": "integer", "minimum": 0 },
+            "schema_jsonld": { "type": "array", "items": { "type": "object" } }
+          }
+        },
+        "http_headers": {
+          "type": "object",
+          "description": "Importanti per sicurezza: contenuto da security checks (HSTS, CSP…).",
+          "additionalProperties": true
+        },
+        "images_missing_alt": { "type": "integer", "minimum": 0 },
+        "charset_ok": { "type": "boolean" },
+        "robots_respected": { "type": "boolean" },
+        "error_detail": {
+          "description": "Motivo per status error/skipped (diagnostica interna, non mostrato al pubblico).",
+          "type": "string"
+        },
+        "wordpress": {
+          "description": "Fingerprint WordPress (presente solo se il sito è WP): versione core, plugin, tema.",
+          "type": "object",
+          "properties": {
+            "is_wordpress": { "type": "boolean" },
+            "core": { "type": ["string", "null"] },
+            "theme": { "type": ["string", "null"] },
+            "plugins": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "slug": { "type": "string" },
+                  "version": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "qualitative": {
+          "description": "Segnali qualitativi/commerciali osservati nella pagina (per le 17 aree: business, UX, contenuti, CRO, branding, marketing). Solo ciò che è osservabile; mancanza = assenza.",
+          "type": "object",
+          "properties": {
+            "body_text_sample": { "type": "string" },
+            "contact_channels": {
+              "type": "object",
+              "properties": {
+                "emails": { "type": "array", "items": { "type": "string" } },
+                "phones": { "type": "array", "items": { "type": "string" } },
+                "whatsapp": { "type": "array", "items": { "type": "string" } },
+                "n_contact_links": { "type": "integer", "minimum": 0 },
+                "n_forms": { "type": "integer", "minimum": 0 },
+                "n_cta": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "social_channels": { "type": "array", "items": { "type": "string" } },
+            "branding": {
+              "type": "object",
+              "properties": {
+                "logo": { "type": ["string", "null"] },
+                "favicon": { "type": ["string", "null"] },
+                "og": { "type": "object" },
+                "has_og_image": { "type": "boolean" },
+                "has_twitter_card": { "type": "boolean" }
+              }
+            },
+            "tracking": {
+              "type": "object",
+              "properties": {
+                "gtm": { "type": "boolean" }, "ga4": { "type": "boolean" },
+                "fbpixel": { "type": "boolean" }, "hotjar": { "type": "boolean" },
+                "matomo": { "type": "boolean" }
+              }
+            },
+            "booking_external_hosts": { "type": "array", "items": { "type": "string" } },
+            "content": {
+              "type": "object",
+              "properties": {
+                "lorem_ipsum": { "type": "boolean" },
+                "body_text_words": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "media": {
+              "type": "object",
+              "properties": {
+                "total_images": { "type": "integer", "minimum": 0 },
+                "images_with_alt": { "type": "integer", "minimum": 0 },
+                "images_missing_alt": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "brand_color_css": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "vitals": {
+      "title": "CoreWebVitals",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "LCP_ms": { "type": "integer", "minimum": 0 },
+        "INP_or_TBT_ms": { "type": "integer", "minimum": 0 },
+        "CLS": { "type": "number", "minimum": 0 },
+        "FCP_ms": { "type": "integer", "minimum": 0 },
+        "TTFB_ms": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

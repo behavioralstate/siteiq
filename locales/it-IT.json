@@ -1,0 +1,718 @@
+{
+  "meta": {
+    "html_lang": "it",
+    "language_name": "italiano",
+    "switch_to": "Italiano"
+  },
+  "format": {
+    "decimal": ",",
+    "group": ".",
+    "date": "{dd}/{mm}/{yyyy}"
+  },
+  "categories": {
+    "development": "Sviluppo Web",
+    "seo": "SEO",
+    "security": "Sicurezza",
+    "accessibility": "Accessibilità",
+    "performance": "Performance",
+    "wordpress": "WordPress"
+  },
+  "severity": {
+    "ok": "OK",
+    "warn": "ATTENZIONE",
+    "error": "ERRORE"
+  },
+  "checks": {
+    "missing": "Mancante",
+    "text_with_length": {
+      "one": "{text} ({count} carattere)",
+      "other": "{text} ({count} caratteri)"
+    },
+    "milliseconds": "{value} ms",
+    "http_unreachable": {
+      "label": "Pagina raggiungibile (HTTP 200)",
+      "detail": "Nessuna pagina OK analizzata — controlla che l'URL sia pubblico e raggiungibile."
+    },
+    "http": {
+      "label": "Stato HTTP",
+      "detail": "HTTP {status}"
+    },
+    "redirect": {
+      "label": "Catena di redirect",
+      "detail": {
+        "one": "{count} redirect",
+        "other": "{count} redirect"
+      },
+      "too_many": "{count} redirect (troppi: più di 5)"
+    },
+    "charset": {
+      "label": "Codifica caratteri dichiarata",
+      "present": "meta charset presente",
+      "missing": "meta charset assente"
+    },
+    "title": {
+      "label": "Tag title"
+    },
+    "meta_description": {
+      "label": "Meta description"
+    },
+    "h1": {
+      "label": "H1 unico",
+      "detail": {
+        "one": "{count} elemento H1",
+        "other": "{count} elementi H1"
+      }
+    },
+    "canonical": {
+      "label": "Canonical",
+      "missing": "mancante"
+    },
+    "hreflang": {
+      "label": "Tag hreflang",
+      "detail": {
+        "one": "{count} versione linguistica dichiarata",
+        "other": "{count} versioni linguistiche dichiarate"
+      },
+      "none": "nessuno (corretto se il sito è in una sola lingua)"
+    },
+    "schema": {
+      "label": "Dati strutturati (schema.org)",
+      "detail": {
+        "one": "{count} blocco JSON-LD",
+        "other": "{count} blocchi JSON-LD"
+      },
+      "none": "assenti"
+    },
+    "header": {
+      "present": "presente",
+      "missing": "header mancante"
+    },
+    "alt": {
+      "label": "Immagini con ALT",
+      "detail": {
+        "one": "{count} immagine senza alt",
+        "other": "{count} immagini senza alt"
+      }
+    },
+    "contrast": {
+      "label": "Contrasto colore (WCAG 1.4.3)",
+      "detail": {
+        "one": "{count} violazione",
+        "other": "{count} violazioni"
+      }
+    },
+    "axe": {
+      "label": "Violazione axe: {rule}",
+      "detail": {
+        "one": "{count} nodo",
+        "other": "{count} nodi"
+      }
+    },
+    "vitals": {
+      "label": "Core Web Vitals misurati",
+      "detail": "Nessuna metrica misurata (ambiente headless o pagina non renderizzata)."
+    },
+    "scan": {
+      "label": "Integrità scansione",
+      "detail": {
+        "one": "{count} pagina non analizzabile (errori: {errors}, saltate: {skipped})",
+        "other": "{count} pagine non analizzabili (errori: {errors}, saltate: {skipped})"
+      },
+      "robots": {
+        "one": "esclusa da robots.txt",
+        "other": "escluse da robots.txt"
+      },
+      "with_robots": "{detail} — {robots}"
+    }
+  },
+  "errors": {
+    "target": {
+      "empty_or_too_long": "URL vuoto o troppo lungo",
+      "bad_characters": "URL con caratteri non ammessi",
+      "scheme": "sono ammessi solo URL http:// o https://",
+      "no_host": "URL senza host",
+      "unresolvable": "host non risolvibile: {host}",
+      "not_public": "indirizzo non pubblico non ammesso: {host}",
+      "too_many_redirects": "troppi redirect",
+      "bad_proxy_request": "richiesta proxy non valida"
+    },
+    "api": {
+      "url_invalid": "URL non valido: {reason}",
+      "email_invalid": "email non valida",
+      "too_many_requests": "troppe richieste, riprova più tardi",
+      "confirmation_send_failed": "impossibile inviare l'email di conferma, riprova più tardi",
+      "confirm_link_invalid": "link di conferma non valido",
+      "scan_not_allowed": "email non confermata o scansione gratuita già utilizzata",
+      "scan_already_used": "scansione gratuita già utilizzata",
+      "queue_full": "troppe analisi in corso, riprova tra qualche minuto",
+      "job_not_found": "job non trovato",
+      "report_not_found": "report non trovato",
+      "auth_not_configured": "autenticazione non configurata (AUTH_TOKEN/AUTH_CLIENTS)",
+      "auth_required": "autenticazione richiesta (Authorization: Bearer <token>)",
+      "token_invalid": "token non valido",
+      "analysis_failed": "Analisi non riuscita: il sito non è raggiungibile o l'elaborazione è fallita."
+    }
+  },
+  "lead": {
+    "check_email": "controlla la tua email per confermare"
+  },
+  "jobs": {
+    "progress_ai": "Report AI in generazione…"
+  },
+  "email": {
+    "confirm": {
+      "subject": "Conferma la tua email — SiteIQ",
+      "body": "Ciao!\n\nHai richiesto un'analisi gratuita del tuo sito con SiteIQ.\nPer verificare la tua email e sbloccare l'analisi (1 pagina, gratis), clicca su questo link:\n\n{url}\n\nSe non hai richiesto tu questa email, puoi ignorarla.\n\nA presto,\nil team SiteIQ\n"
+    }
+  },
+  "wordpress": {
+    "check_label": "Verifica vulnerabilità WordPress",
+    "unavailable": "verifica non disponibile in questo momento",
+    "core_label": "WordPress core",
+    "plugin_label": "Plugin {slug}",
+    "known_vulns": {
+      "one": "versione {version}: {count} vulnerabilità nota",
+      "other": "versione {version}: {count} vulnerabilità note"
+    },
+    "no_known_vulns": "versione {version}: nessuna vulnerabilità nota",
+    "version_unavailable": "versione {version}: verifica non disponibile",
+    "version_unknown": "versione non rilevata: non verificabile"
+  },
+  "best": {
+    "failure": {
+      "TARGET_UNREACHABLE": "Il sito non è raggiungibile.",
+      "TARGET_HTTP_ERROR": "Il sito ha risposto con un errore HTTP; vedi SiteCrawled.",
+      "ROBOTS_DISALLOWED": "Il robots.txt del sito esclude questa pagina.",
+      "INTERNAL": "L'analisi non è riuscita per un errore interno di SiteIQ."
+    },
+    "errors": {
+      "command_schema_not_found": "Schema di comando sconosciuto '{schema}' versione '{version}'",
+      "event_schema_not_found": "Schema di evento sconosciuto '{schema}' versione '{version}'",
+      "query_schema_not_found": "Schema di query sconosciuto '{schema}' versione '{version}'",
+      "query_not_found": "Query sconosciuta '{schema}'",
+      "invalid_json": "Il corpo della richiesta non è JSON valido",
+      "not_an_object": "Il comando deve essere un unico oggetto JSON CloudEvents",
+      "specversion": "specversion deve essere \"1.0\"",
+      "field_required": "{field} è obbligatorio e deve essere una stringa non vuota",
+      "datacontenttype": "datacontenttype deve essere \"application/json\"",
+      "data_object": "data deve essere un oggetto JSON",
+      "timestamp": "time deve essere un timestamp ISO 8601 con fuso orario",
+      "unsupported_media_type": "Invia il comando come application/cloudevents+json",
+      "payload_too_large": "Il corpo supera {max} byte",
+      "unknown_command_type": "Tipo di comando sconosciuto '{type}'",
+      "dataschema_mismatch": "dataschema non corrisponde alla voce del catalogo",
+      "invalid_data": "data non rispetta lo schema del comando",
+      "target_not_allowed": "URL non ammesso: {reason}",
+      "duplicate_command_id": "Questo id di comando è già stato usato con un contenuto diverso",
+      "rate_limited": "Troppe analisi richieste; riprova più tardi",
+      "queue_full": "Troppe analisi in corso; riprova più tardi",
+      "parameter_timestamp": "{parameter} deve essere un timestamp ISO 8601 con fuso orario",
+      "paging": "limit deve essere un intero positivo e after un cursore preso da nextCursor",
+      "query_parameters": "I parametri non rispettano lo schema della query",
+      "analysis_not_found": "Nessuna analisi con questo id (sconosciuta, o più vecchia di circa un'ora)",
+      "route_not_found": "Nessuna route BEST {method} {path}"
+    }
+  },
+  "areas": {
+    "business_positioning": "Business/posizionamento",
+    "differentiation": "Differenziazione",
+    "ux": "UX",
+    "design_branding": "Design/Branding",
+    "content": "Contenuti",
+    "cro": "CRO",
+    "technical_seo": "SEO tecnica",
+    "onpage_seo": "SEO on-page",
+    "offpage_seo": "SEO off-page",
+    "performance_cwv": "Performance (Lighthouse/CWV)",
+    "performance_resources": "Performance (risorse)",
+    "mobile": "Mobile",
+    "accessibility": "Accessibilità",
+    "security": "Sicurezza",
+    "marketing_analytics": "Marketing analytics",
+    "commercial": "Commerciale",
+    "growth_potential": "Potenziale di crescita"
+  },
+  "macro": {
+    "business": "Business",
+    "usability": "Facilità d'uso",
+    "conversion": "Da visite a clienti",
+    "search_visibility": "Visibilità su Google",
+    "speed": "Velocità",
+    "marketing": "Marketing",
+    "commercial": "Commerciale"
+  },
+  "stub": {
+    "rec_a11y": {
+      "title": "Risolvi le violazioni di accessibilità",
+      "detail": {
+        "one": "Trovata {count} violazione axe-core sul sito. Le più comuni sono contrasto colore, attributi alt mancanti e landmark. Correggila per la conformità WCAG 2.2 AA.",
+        "other": "Trovate {count} violazioni axe-core sul sito. Le più comuni sono contrasto colore, attributi alt mancanti e landmark. Correggetele per la conformità WCAG 2.2 AA."
+      }
+    },
+    "rec_alt": {
+      "title": "Aggiungi testi alternativi alle immagini",
+      "detail": {
+        "one": "Almeno {count} immagine senza attributo alt.",
+        "other": "Almeno {count} immagini senza attributo alt."
+      }
+    },
+    "highlight": "Pagine valide analizzate: {ok} su {total}.",
+    "no_urgent": "Nessun problema urgente rilevato.",
+    "overall_verdict": "Il sito ha problemi seri da sistemare.",
+    "areas": {
+      "business_positioning": {
+        "analysis": "Comunicazione chiara di posizionamento e servizi.",
+        "strengths": [
+          "Proposta completa",
+          "Testo su ubicazione"
+        ],
+        "weaknesses": [
+          "Sezioni incomplete"
+        ]
+      },
+      "differentiation": {
+        "analysis": "Vantaggi chiari per prenotazione diretta.",
+        "strengths": [
+          "Vantaggi misurabili",
+          "Segmentazione"
+        ],
+        "weaknesses": [
+          "Promessa distintiva mancante"
+        ]
+      },
+      "ux": {
+        "analysis": "Struttura ampia ma performance mobile critica.",
+        "strengths": [
+          "Architettura coerente",
+          "Nessuna pagina rotta"
+        ],
+        "weaknesses": [
+          "LCP alto",
+          "H1 mancanti"
+        ]
+      },
+      "design_branding": {
+        "analysis": "Logo e favicon presenti, manca l'immagine per i social.",
+        "strengths": [
+          "Logo personalizzato",
+          "Favicon"
+        ],
+        "weaknesses": [
+          "Nessun og:image"
+        ]
+      },
+      "content": {
+        "analysis": "Testi curati su molte pagine, segnaposto sulle camere.",
+        "strengths": [
+          "Testi descrittivi"
+        ],
+        "weaknesses": [
+          "Lorem ipsum"
+        ]
+      },
+      "cro": {
+        "analysis": "Moduli e canali diffusi, funnel su piattaforma esterna.",
+        "strengths": [
+          "Canali di contatto",
+          "Vantaggi diretti"
+        ],
+        "weaknesses": [
+          "Booking esterno"
+        ]
+      },
+      "technical_seo": {
+        "analysis": "HTTPS, sitemap, canonical corretti.",
+        "strengths": [
+          "HTTPS valido",
+          "Sitemap completa"
+        ],
+        "weaknesses": [
+          "Nessuna criticità bloccante"
+        ]
+      },
+      "onpage_seo": {
+        "analysis": "Home ottimizzata, pagine interne con title duplicati.",
+        "strengths": [
+          "Home corretta",
+          "Punteggio SEO alto"
+        ],
+        "weaknesses": [
+          "H1 mancanti su interne"
+        ]
+      },
+      "offpage_seo": {
+        "analysis": "Solo un canale social rilevato; backlink non misurabili.",
+        "strengths": [
+          "Profilo social presente"
+        ],
+        "weaknesses": [
+          "Autorevolezza non misurabile"
+        ]
+      },
+      "performance_cwv": {
+        "analysis": "Performance mobile critica.",
+        "strengths": [
+          "CLS eccellente"
+        ],
+        "weaknesses": [
+          "LCP 15 s",
+          "TBT alto"
+        ]
+      },
+      "performance_resources": {
+        "analysis": "TTFB buono, ma risorse render-blocking non ottimizzate.",
+        "strengths": [
+          "TTFB nella norma"
+        ],
+        "weaknesses": [
+          "Immagini non ottimizzate"
+        ]
+      },
+      "mobile": {
+        "analysis": "Layout adattato ma performance su smartphone pessima.",
+        "strengths": [
+          "Viewport corretto"
+        ],
+        "weaknesses": [
+          "LCP mobile alto"
+        ]
+      },
+      "accessibility": {
+        "analysis": "Punteggio axe discreto, contrasto e alt da sistemare.",
+        "strengths": [
+          "Lingua dichiarata correttamente"
+        ],
+        "weaknesses": [
+          "Contrasto",
+          "Alt mancanti"
+        ]
+      },
+      "security": {
+        "analysis": "HTTPS valido ma header di sicurezza assenti.",
+        "strengths": [
+          "HTTPS valido",
+          "Redirect corretto"
+        ],
+        "weaknesses": [
+          "Header mancanti"
+        ]
+      },
+      "marketing_analytics": {
+        "analysis": "GTM e GA4 presenti.",
+        "strengths": [
+          "GA4+GTM installati"
+        ],
+        "weaknesses": [
+          "Nessuna conversione configurata"
+        ]
+      },
+      "commercial": {
+        "analysis": "Forte impronta commerciale ma booking delegato.",
+        "strengths": [
+          "Vantaggi diretti",
+          "Molti canali"
+        ],
+        "weaknesses": [
+          "Funnel esterno"
+        ]
+      },
+      "growth_potential": {
+        "analysis": "Base di contenuti ricca, problemi risolvibili con priorità.",
+        "strengths": [
+          "Struttura ricca",
+          "Brand storico"
+        ],
+        "weaknesses": [
+          "Performance e contenuti da sistemare"
+        ]
+      }
+    },
+    "plan": {
+      "immediate_0_30": [
+        "Aggiungere header di sicurezza",
+        "Inserire H1 mancanti",
+        "Correggere titoli duplicati",
+        "Attivare compressione testo"
+      ],
+      "medium_30_90": [
+        "Ottimizzare risorse render-blocking",
+        "Configurare conversioni in GA4",
+        "Ottimizzare immagini con lazy loading"
+      ],
+      "long_90_365": [
+        "Integrare il booking engine nel sito",
+        "Creare landing page per segmenti",
+        "Sviluppare strategia social e reputazione"
+      ]
+    },
+    "opportunities": {
+      "0": {
+        "title": "Ottimizzazione performance completa",
+        "benefit": "Riduzione tempi di caricamento e miglioramento UX"
+      },
+      "1": {
+        "title": "Correzione struttura H1 e titoli",
+        "benefit": "Migliore accessibilità e SEO"
+      },
+      "2": {
+        "title": "Completamento contenuti",
+        "benefit": "Aumento fiducia e conversione"
+      },
+      "3": {
+        "title": "Integrazione booking engine",
+        "benefit": "Controllo diretto del funnel"
+      },
+      "4": {
+        "title": "Landing page per nicchie",
+        "benefit": "Catturare segmenti specifici"
+      }
+    },
+    "glossary": {
+      "LCP": "Tempo in cui il contenuto principale diventa visibile.",
+      "TBT": "Tempo in cui la pagina non risponde all'utente.",
+      "CLS": "Stabilità visiva della pagina.",
+      "H1": "Intestazione principale di una pagina.",
+      "Alt": "Testo alternativo delle immagini per screen reader."
+    }
+  },
+  "report": {
+    "subject": "Analisi del tuo sito {url} — SiteIQ",
+    "page_title": "{domain} — Report SiteIQ",
+    "page_subtitle": "Report di analisi",
+    "site_analysis": "Analisi del sito",
+    "automatic": "Report automatico",
+    "verdict": {
+      "ok": "Il tuo sito è in buona salute",
+      "critical": "Attenzione: problemi prioritari",
+      "attention": "Il tuo sito richiede interventi"
+    },
+    "no_priority": "Nessun problema prioritario rilevato.",
+    "scores_by_area": "Punteggi per area",
+    "checks_detail": "Dettaglio verifiche",
+    "no_details": "Nessun dettaglio salvato.",
+    "fix_first": "Cosa sistemare per primo",
+    "areas_examined": {
+      "one": "L'area esaminata",
+      "other": "Le {count} aree esaminate"
+    },
+    "no_areas": "Nessuna area dettagliata.",
+    "final_verdict": "Giudizio finale",
+    "action_plan": "Piano d'azione",
+    "plan": {
+      "immediate": "Da fare subito (0–30 giorni)",
+      "medium": "Medio termine (30–90 giorni)",
+      "long": "Lungo termine (90–365 giorni)"
+    },
+    "opportunities": "Le opportunità principali",
+    "opportunity_priority": {
+      "High": "Alta",
+      "Medium": "Media",
+      "Strategic": "Strategica"
+    },
+    "effort": {
+      "low": "basso",
+      "medium": "medio",
+      "high": "alto"
+    },
+    "glossary": "Glossario",
+    "cta": "Richiedi l'intervento sul tuo sito",
+    "footer": "Generato da SiteIQ · Report confidenziale · {url}",
+    "footer_page": "Generato da SiteIQ · Report confidenziale",
+    "footer_ignore": "Se non hai richiesto tu questa analisi, ignora questa email.",
+    "wp": {
+      "title": "Sicurezza WordPress",
+      "core_version": "Versione core",
+      "core_version_value": "Versione core: {version}",
+      "ok": "ok",
+      "vulns": {
+        "one": "{count} vulnerabilità nota",
+        "other": "{count} vulnerabilità note"
+      },
+      "vulnerable_count": "VULNERABILE ({count})",
+      "vulnerable_cves": "VULNERABILE · {count} CVE",
+      "data_unavailable": "dati non disponibili",
+      "version_unknown": "versione non rilevata",
+      "version_unknown_unverifiable": "versione non rilevata · non verificabile"
+    }
+  },
+  "web": {
+    "admin": {
+      "col_client": "Client",
+      "col_cost": "Costo $",
+      "col_email": "Email",
+      "col_generated": "Generato",
+      "col_report": "Report",
+      "col_scan_used": "Scan usato",
+      "col_size": "Dimensione",
+      "col_status": "Stato",
+      "col_tokens": "Token",
+      "col_url": "URL",
+      "col_when": "Quando",
+      "engine": "Motore",
+      "engine_openrouter": "OpenRouter (AI reale)",
+      "engine_stub": "Stub (test, gratis)",
+      "footer": "© 2026 SiteIQ · admin",
+      "heading": "Pannello admin",
+      "leads": "Lead (landing)",
+      "leads_region": "Lead dalla landing",
+      "msg_done": "Analisi completata.",
+      "msg_error": "Errore: {message}",
+      "msg_failed": "Analisi fallita: {error}",
+      "msg_save_token_first": "Salva prima la chiave di accesso.",
+      "msg_server_error": "Errore server {status}",
+      "msg_started": "Analisi avviata (job {job}…). Attendo il risultato…",
+      "msg_starting": "Avvio analisi…",
+      "msg_timeout": "Timeout in attesa del risultato.",
+      "msg_token_invalid": "Chiave non valida.",
+      "msg_token_saved": "Chiave salvata.",
+      "msg_url_required": "Inserisci un URL.",
+      "new_analysis": "Nuova analisi",
+      "recent_requests": "Ultime richieste",
+      "report_link": "Report {id}…",
+      "reports_hint": "Clicca su un report per aprirlo in una nuova scheda e valutarlo.",
+      "result": "Risultato",
+      "save": "Salva",
+      "saved_reports": "Report salvati",
+      "size_kib": "{size} KiB",
+      "start": "Avvia analisi",
+      "status": "pannello admin",
+      "status_confirmed": "confermato",
+      "status_error": "errore",
+      "status_ok": "ok",
+      "status_pending": "in attesa",
+      "status_running": "in corso",
+      "status_skipped": "stub (non conteggiato)",
+      "title": "SiteIQ — Admin",
+      "token_label": "Chiave di accesso",
+      "token_placeholder": "Chiave di accesso admin",
+      "url_label": "URL da analizzare",
+      "usage": "Consumo",
+      "usage_errors": "Errori",
+      "usage_ok": "OK",
+      "usage_requests": "Richieste",
+      "usage_tokens": "Token totali"
+    },
+    "app": {
+      "confirm_failed": "Impossibile verificare la conferma. Riprova.",
+      "confirm_invalid": "link di conferma non valido",
+      "email_invalid": "Inserisci una email valida.",
+      "network_error": "Errore di rete. Riprova.",
+      "request_failed": "Errore durante la richiesta.",
+      "scan_done": "Analisi completata.",
+      "scan_error": "Errore durante l'analisi.",
+      "scan_failed": "Analisi fallita.",
+      "scan_not_allowed": "Non puoi avviare l'analisi.",
+      "scan_running": "L'AI sta analizzando il tuo sito…",
+      "scan_starting": "Avvio dell'analisi…",
+      "scan_timeout": "Tempo scaduto. Ricarica e riprova.",
+      "server_unreachable": "Impossibile contattare il server. Riprova.",
+      "still_pending": "{reason} — la richiesta è ancora in attesa di conferma.",
+      "url_invalid": "Inserisci un URL valido (https://…)",
+      "your_site": "il tuo sito"
+    },
+    "common": {
+      "language": "Lingua",
+      "no": "no",
+      "url_placeholder": "https://iltuosito.it",
+      "yes": "sì"
+    },
+    "landing": {
+      "area_accessibility": "WCAG 2.2: contrasto, alt text, landmarks, navigazione da tastiera e screen reader.",
+      "area_performance": "Core Web Vitals: LCP, CLS, FCP, TTFB. Quanto è veloce per gli utenti reali.",
+      "area_security": "Header di sicurezza: HSTS, CSP, X-Frame-Options. Se è WordPress, anche le vulnerabilità note.",
+      "area_seo": "Title, meta description, heading, canonical, dati strutturati. La base per essere trovati.",
+      "check_email_after": ". Apri la mail e clicca per sbloccare l'analisi.",
+      "check_email_before": "Ti abbiamo mandato un link di conferma a",
+      "check_email_title": "Controlla la tua email",
+      "confirmed_title": "Email confermata",
+      "cta_text": "Lascia il tuo sito e una email. Ti mandiamo un link di conferma; appena confermi, sblocchi l'analisi gratuita.",
+      "email_placeholder": "nome@azienda.it",
+      "faq1_a": "Sì: un'analisi per email confermata, senza account. Ti scriviamo solo il link di verifica.",
+      "faq1_q": "È davvero gratuito?",
+      "faq2_a": "Solo i segnali tecnici della pagina che inserisci: Core Web Vitals, accessibilità, header, SEO. Nessun dato personale.",
+      "faq2_q": "Quali dati raccogliete?",
+      "faq3_a": "Ogni raccomandazione è agganciata a un dato misurato (contrasto, header, violazioni axe). Se il dato manca, il consiglio non c'è.",
+      "faq3_q": "Come evitate le allucinazioni?",
+      "faq4_a": "Sì: versione core, plugin e vulnerabilità note pubbliche. Il dettaglio lo trovi nel report.",
+      "faq4_q": "Rilevate anche WordPress?",
+      "faq_tag": "Domande",
+      "footer_areas": "Performance · Accessibilità · Sicurezza · SEO",
+      "footer_tagline": "analisi dei siti spiegata",
+      "get_link": "Ricevi il link",
+      "ghost_footer": "Ogni punteggio agganciato alla sua evidenza",
+      "hero_lede": "Scansioniamo performance, accessibilità, sicurezza e SEO. L'AI ti dice la cosa più urgente, perché conta, e come sistemarla. Ogni consiglio è agganciato al dato che lo giustifica.",
+      "hero_note": "gratis · 1 pagina · senza account",
+      "hero_title": "Capire il tuo sito, <br>in una pagina.",
+      "how_intro": "Inserisci l'URL, verifichi l'email, ricevi il report. Punto.",
+      "how_title": "Tre passi, nessuna attrezzatura.",
+      "kpi_areas": "aree analizzate",
+      "kpi_free": "analisi gratuita",
+      "kpi_hallucinations": "allucinazioni",
+      "kpi_pages_value": "1 pg",
+      "kpi_real_data": "dati reali",
+      "meta_description": "SiteIQ scansiona performance, accessibilità, sicurezza e SEO del tuo sito, e l'AI ti dice in italiano cosa sistemare e perché. Ogni consiglio è agganciato al dato che lo giustifica.",
+      "nav_faq": "FAQ",
+      "nav_how": "Come funziona",
+      "nav_label": "Principale",
+      "nav_what": "Cosa analizza",
+      "no_personal_data": "Nessun dato personale: ti scriviamo solo il link di verifica.",
+      "not_arrived": "Non è arrivata? Controlla spam, oppure",
+      "page_title": "SiteIQ — L'analisi del tuo sito, spiegata in italiano",
+      "ready_after": "è pronto per l'analisi gratuita.",
+      "ready_before": "Il tuo sito",
+      "request_again": "richiedi di nuovo",
+      "request_analysis": "Richiedi un'analisi",
+      "scan_in_progress": "Analisi in corso…",
+      "start_analysis": "Avvia l'analisi",
+      "step1_text": "Dati reali con strumenti standard: Core Web Vitals, axe-core, header di sicurezza, SEO.",
+      "step1_title": "Scansioniamo il sito",
+      "step2_text": "Un modello spiega cosa va sistemato, perché conta, e in che ordine.",
+      "step2_title": "L'AI interpreta i dati",
+      "step3_text": "Documento via email e pagina verificabile. Ogni consiglio è tracciato al dato.",
+      "step3_title": "Ricevi il report",
+      "trust_no_hallucinations": "Nessuna allucinazione",
+      "trust_real_data": "Dati reali",
+      "what_intro": "Non 32 analizzatori da decifrare: un verdetto chiaro, subito.",
+      "what_title": "Quattro aree, un solo report.",
+      "why_free": "Gratis, senza account",
+      "why_one_page": "Una pagina per email confermata",
+      "why_report": "Report su email + pagina",
+      "your_email": "La tua email",
+      "your_site": "Il tuo sito"
+    },
+    "report": {
+      "checks_toggle": "Dettaglio verifiche ({count})",
+      "effort": "sforzo {effort}",
+      "empty": "Risultato vuoto.",
+      "evidence": "Evidenza:",
+      "no_urgent": "Nessun problema urgente rilevato. 🎉",
+      "no_verdict": "Nessun verdetto",
+      "verdict": "Verdetto",
+      "what_to_fix": "Cosa sistemare",
+      "wp_core": "Core:",
+      "wp_core_ok": "core ok",
+      "wp_core_vulns": {
+        "one": "{count} vulnerabilità del core",
+        "other": "{count} vulnerabilità del core"
+      },
+      "wp_not_verifiable": "non verificabile",
+      "wp_plugin_unknown": "{slug} (versione non rilevata)",
+      "wp_plugin_unknown_version": "{slug} (versione sconosciuta)",
+      "wp_plugin_version": "{slug} v{version}",
+      "wp_plugin_vulns": {
+        "one": "{count} vulnerabilità",
+        "other": "{count} vulnerabilità"
+      },
+      "wp_safe": "sicuro"
+    },
+    "viewer": {
+      "error": "Errore: {message}",
+      "frame_title": "Report SiteIQ",
+      "no_job": "Nessun report selezionato (?job=).",
+      "no_token": "Chiave admin mancante: salvala prima nel pannello /admin.",
+      "not_found": "Report non trovato.",
+      "title": "SiteIQ — Report",
+      "token_invalid": "Chiave non valida."
+    }
+  }
+}

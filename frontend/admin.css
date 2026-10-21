@@ -1,0 +1,70 @@
+/* ============================================================
+   SiteIQ — Admin (reshape frontend-design 2026-10-07)
+   Condivide i token del world "carta fredda + un accento" con
+   landing.css; questo file copre solo le classi specifiche
+   dell'interfaccia amministrativa. Allineato a docs/DESIGN.md.
+   ============================================================ */
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.admin { max-width: 900px; margin: 0 auto; padding: var(--sp-6) var(--sp-5); width: 100%; }
+.admin h1 { font-size: var(--sp-6); margin-bottom: var(--sp-5); }
+.header-status { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-3);
+  font-size: .86rem; font-weight: 500; }
+.header-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+.admin-panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+  padding: var(--sp-5); margin-bottom: var(--sp-5); }
+.admin-panel h2 { font-size: 1.1rem; margin-bottom: var(--sp-3); }
+
+.admin-form { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: flex-end; }
+.admin-form .field { flex: 1; min-width: 240px; }
+.admin-form label { display: block; font-size: .86rem; font-weight: 600; margin-bottom: var(--sp-2);
+  color: var(--ink-2); }
+.admin-form input, .admin-form select {
+  width: 100%; padding: 12px 14px; font-size: 1rem; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+}
+.admin-form input::placeholder { color: var(--ink-3); }
+.admin-form input:focus-visible, .admin-form select:focus-visible { border-color: var(--focus); outline: none; }
+
+.btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--ink-2);
+  font-weight: 600; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.admin-msg { margin-top: var(--sp-3); font-size: .9rem; color: var(--ink-2); font-weight: 500; }
+.admin-msg.error { color: var(--danger); }
+.admin-msg.ok { color: var(--accent); }
+
+.usage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.usage-cell { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r);
+  padding: var(--sp-3) var(--sp-4); }
+.usage-cell .k { font-size: .72rem; font-weight: 700; letter-spacing: .06em; color: var(--ink-3);
+  text-transform: uppercase; }
+.usage-cell .v { font-size: 1.5rem; font-weight: 800; margin-top: 2px; font-family: var(--serif); }
+
+table.log { width: 100%; border-collapse: collapse; font-size: .86rem; }
+table.log th, table.log td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.log th { color: var(--ink-3); font-weight: 600; font-size: .78rem; text-transform: uppercase;
+  letter-spacing: .04em; }
+table.log td { color: var(--ink-2); }
+table.log .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .78rem; }
+table.log a { color: var(--accent); text-decoration: none; font-weight: 500; }
+table.log a:hover { text-decoration: underline; }
+
+.report-out { margin-top: var(--sp-4); }
+.report-out pre { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r);
+  padding: var(--sp-4); overflow: auto; max-height: 460px; font-size: .8rem; color: var(--ink-2); }
+
+.token-bar { display: flex; gap: var(--sp-3); align-items: center; margin-bottom: var(--sp-5); }
+.token-bar input { flex: 1; padding: 11px 14px; font-size: .9rem; background: var(--card);
+  color: var(--ink); border: 1px solid var(--line); border-radius: 8px; }
+.token-bar input::placeholder { color: var(--ink-3); }
+.token-bar input:focus-visible { border-color: var(--focus); outline: none; }
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 560px) {
+  .admin { padding: var(--sp-5) var(--sp-4); }
+  .admin-panel { padding: var(--sp-4); }
+}

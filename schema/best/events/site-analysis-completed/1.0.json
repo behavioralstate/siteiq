@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SiteAnalysisCompleted",
+  "description": "The analysis finished and its findings are ready: read them with the get-findings query using analysisId.",
+  "type": "object",
+  "required": ["analysisId", "url", "findingCounts", "isWordPress"],
+  "properties": {
+    "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "url": { "type": "string" },
+    "findingCounts": {
+      "type": "object",
+      "description": "Number of findings per status.",
+      "required": ["ok", "warn", "error"],
+      "properties": {
+        "ok": { "type": "integer", "minimum": 0 },
+        "warn": { "type": "integer", "minimum": 0 },
+        "error": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "isWordPress": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

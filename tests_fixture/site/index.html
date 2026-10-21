@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Fixture Home — SiteIQ Test</title>
+<meta name="description" content="Home page della fixture SiteIQ.">
+<link rel="canonical" href="http://127.0.0.1:8901/">
+</head>
+<body>
+<h1>Home</h1>
+<p>Benvenuto nella fixture.</p>
+<img src="missing-alt.png">  <!-- img senza alt: atteso come violazione/segna a11y -->
+<span style="color:#999;background:#999">Contrasto basso</span>  <!-- color-contrast violation atteso -->
+<a href="/about.html">About</a>
+<a href="mailto:x@example.com">Email</a>
+<a href="#top">Anchor interno</a>
+<script type="application/ld+json">{"@type":"WebSite","name":"Fixture"}</script>
+</body>
+</html>

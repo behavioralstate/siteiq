@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SiteAnalysisFailed",
+  "description": "The analysis ended without findings. The reason says whether retrying can help: TARGET_UNREACHABLE and TARGET_HTTP_ERROR may succeed later, ROBOTS_DISALLOWED will not until the site changes its robots.txt, INTERNAL is a fault of this service.",
+  "type": "object",
+  "required": ["analysisId", "url", "reason", "message"],
+  "properties": {
+    "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "url": { "type": "string" },
+    "reason": {
+      "enum": ["TARGET_UNREACHABLE", "TARGET_HTTP_ERROR", "ROBOTS_DISALLOWED", "INTERNAL"],
+      "description": "Machine-readable cause."
+    },
+    "message": { "type": "string", "description": "Short human-readable explanation." }
+  },
+  "additionalProperties": false
+}

@@ -34,20 +34,26 @@ _PLUGIN_PATH_RE = re.compile(r'/wp-content/plugins/([^/"\'\\]+)/', re.I)
 _THEME_PATH_RE = re.compile(r'/wp-content/themes/([^/"\'\\]+)/', re.I)
 
 
-def is_wordpress(html: str) -> bool:
-    return bool(WP_CORE_VERSION_RE.search(html or "")) or "/wp-content/" in (html or "").lower()
-
-
-def core_version(html: str) -> str | None:
-    """Versione WP dal meta generator, o fallback dal testo 'WordPress X.Y'."""
+def _generator_core(html: str) -> str | None:
     for rgx in (_GENERATOR_RE, _GENERATOR_RE2):
         m = rgx.search(html or "")
         if m and "wordpress" in m.group(1).lower():
             v = WP_CORE_VERSION_RE.search(m.group(1))
             if v:
                 return v.group(1)
-    m = WP_CORE_VERSION_RE.search(html or "")
-    return m.group(1) if m else None
+    return None
+
+
+def is_wordpress(html: str) -> bool:
+    """Segnali strutturali (path di asset WP o meta generator), mai il testo
+    della pagina: un articolo che cita "WordPress 5.2" non è un sito WP."""
+    low = (html or "").lower()
+    return "/wp-content/" in low or "/wp-includes/" in low or _generator_core(html) is not None
+
+
+def core_version(html: str) -> str | None:
+    """Versione WP SOLO dal meta generator (il testo libero darebbe falsi CVE)."""
+    return _generator_core(html)
 
 
 def core_version_from_feed(feed: str) -> str | None:
@@ -92,6 +98,18 @@ def detect_plugins(html: str) -> list[dict]:
         if slug not in seen:
             seen[slug] = True
     return [{"slug": s, "version": versions.get(s)} for s in seen]
+
+
+def drop_core_versioned_plugins(wp: dict) -> None:
+    """WordPress accoda ?ver=<versione core> agli asset dei plugin che non ne
+    dichiarano una propria: quel numero NON è la versione del plugin. Lo scarta,
+    così il plugin finisce in "non verificabile" (o viene letto dal readme)."""
+    core = wp.get("core")
+    if not core:
+        return
+    for pl in wp.get("plugins", []):
+        if pl.get("version") == core:
+            pl["version"] = None
 
 
 def detect_theme(html: str) -> str | None:

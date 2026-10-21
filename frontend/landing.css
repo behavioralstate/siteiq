@@ -97,6 +97,14 @@ a { color: var(--primary); text-underline-offset: 3px; }
 .nav-cta { background: var(--primary); color: #fff !important; }
 .nav-cta:hover { background: #2b3648 !important; color: #fff !important; }
 .nav-space { display: none; }
+/* selettore lingua (IT/EN): pulsanti a pillola, quello attivo pieno */
+.lang-switch { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--radius-pill);
+  background: var(--surface-muted); }
+.lang-switch button { border: 0; background: transparent; color: var(--ink-700); font: inherit;
+  font-size: .8rem; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+.lang-switch button:hover { color: var(--ink-900); }
+.lang-switch button.is-active { background: var(--primary); color: #fff; }
+.lang-switch button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* ---------- Hero ---------- */
 .hero { padding: var(--space-2xl) 28px var(--space-xl); }

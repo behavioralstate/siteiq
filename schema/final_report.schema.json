@@ -63,7 +63,15 @@
       "properties": {
         "score10": { "type": "number", "minimum": 0, "maximum": 10 },
         "verdict": { "type": "string" },
-        "macro_areas": { "type": "object" }
+        "macro_areas": {
+          "type": "object",
+          "description": "Voto 0-10 per macro-area; chiavi = id stabili, etichette dal catalogo (macro.<id>).",
+          "propertyNames": {
+            "enum": ["business", "usability", "conversion", "search_visibility", "speed",
+                     "marketing", "commercial"]
+          },
+          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 10 }
+        }
       }
     },
     "action_plan": {
@@ -147,9 +155,17 @@
     "area": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "score10", "analysis", "strengths", "weaknesses"],
+      "required": ["id", "score10", "analysis", "strengths", "weaknesses"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
+        "id": {
+          "description": "Id stabile dell'area; l'etichetta mostrata viene dal catalogo di localizzazione (areas.<id>).",
+          "enum": ["business_positioning", "differentiation", "ux", "design_branding",
+                   "content", "cro", "technical_seo", "onpage_seo", "offpage_seo",
+                   "performance_cwv", "performance_resources", "mobile",
+                   "accessibility", "security", "marketing_analytics", "commercial",
+                   "growth_potential"]
+        },
+        "name": { "type": "string", "minLength": 1, "description": "Facoltativo, storico: nome libero dell'area." },
         "score10": { "type": "number", "minimum": 0, "maximum": 10 },
         "analysis": { "type": "string", "minLength": 1 },
         "strengths": { "type": "array", "items": { "type": "string" } },

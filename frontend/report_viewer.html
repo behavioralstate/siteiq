@@ -3,34 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SiteIQ — Report</title>
+  <title data-i18n="web.viewer.title">SiteIQ — Report</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f1115'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%2334c77b'/%3E%3C/svg%3E">
+  <style>
+    html, body { margin: 0; height: 100%; background: #fff; font-family: system-ui, sans-serif; }
+    #report { border: 0; width: 100%; height: 100%; display: block; }
+    #msg { padding: 24px; }
+  </style>
 </head>
 <body>
+  <p id="msg" hidden></p>
+  <!-- Il report contiene testo del sito analizzato e dell'LLM: viene mostrato in
+       un iframe sandbox (niente script, origine opaca), così anche un contenuto
+       malevolo non può leggere la chiave admin salvata in localStorage. -->
+  <iframe id="report" sandbox="" title="Report SiteIQ" data-i18n-attr="title:web.viewer.frame_title" hidden></iframe>
+  <script src="/static/i18n.js"></script>
   <script>
-    /* Viewer report: legge ?job= e ?token= (o localStorage), carica e inietta. */
     "use strict";
     const params = new URLSearchParams(location.search);
     const job = params.get("job") || localStorage.getItem("siteiq_last_report");
-    let token = params.get("token") || localStorage.getItem("siteiq_admin_token");
+    const token = localStorage.getItem("siteiq_admin_token");
 
-    if (!token) {
-      token = prompt("Chiave di accesso admin:");
-      if (token) localStorage.setItem("siteiq_admin_token", token);
+    function show(text) {
+      const el = document.getElementById("msg");
+      el.textContent = text;
+      el.hidden = false;
     }
 
     async function load() {
-      if (!job || !token) { document.body.innerHTML = "<h1>Report e token richiesti (?job=&token=)</h1>"; return; }
+      await I18N.ready;
+      if (!token) { show(I18N.t("web.viewer.no_token")); return; }
+      if (!job) { show(I18N.t("web.viewer.no_job")); return; }
       try {
         const r = await fetch("/api/admin/report/" + encodeURIComponent(job), {
-          headers: { "Authorization": "Bearer " + token },
+          headers: I18N.headers({ "Authorization": "Bearer " + token }),
         });
-        if (r.status === 401) { document.body.innerHTML = "<h1>Chiave non valida</h1>"; return; }
-        if (!r.ok) { document.body.innerHTML = "<h1>Report non trovato</h1>"; return; }
-        const html = await r.text();
-        document.open(); document.write(html); document.close();
+        if (r.status === 401) { show(I18N.t("web.viewer.token_invalid")); return; }
+        if (!r.ok) { show(I18N.t("web.viewer.not_found")); return; }
+        const frame = document.getElementById("report");
+        frame.srcdoc = await r.text();
+        frame.hidden = false;
       } catch (e) {
-        document.body.innerHTML = "<h1>Errore: " + e.message + "</h1>";
+        show(I18N.t("web.viewer.error", { message: e.message }));
       }
     }
     load();

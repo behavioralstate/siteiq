@@ -5,26 +5,24 @@ rispondere a: CHI ha richiesto il test, QUANDO, SU QUALE URL, e quanto credito
 OpenRouter è stato consumato.
 
 Storage: SQLite locale (nessuna dipendenza esterna). Posizione DB configurabile
-via env USAGE_DB (default ./siteiq_usage.db). Thread-safe (lock per le scritture).
+via env USAGE_DB (default <repo>/siteiq_usage.db). Thread-safe: ogni accesso
+alla connessione condivisa avviene sotto `_lock`.
 
 Endpoints di lettura (protetti): vedi routers/admin.py
 """
 from __future__ import annotations
 
-import os
+import json
 import sqlite3
 import threading
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
+
+from app.config import REPO_ROOT, env_str
 
 
 def _db_path() -> str:
-    p = os.environ.get("USAGE_DB", "")
-    if p:
-        return p
-    root = Path(__file__).resolve().parent.parent.parent
-    return str(root / "siteiq_usage.db")
+    return env_str("USAGE_DB") or str(REPO_ROOT / "siteiq_usage.db")
 
 
 _lock = threading.Lock()
@@ -76,14 +74,14 @@ def log_request(client: str, url: str, *, model: str | None = None,
                 int(usage.get("completion_tokens", 0) or 0),
                 int(usage.get("total_tokens", 0) or 0),
                 float(usage.get("cost", 0) or 0),
-                __import__("json").dumps(evidence_refs or []),
+                json.dumps(evidence_refs or []),
             ),
         )
         c.commit()
     return rec_id
 
 
-def _update_status(rec_id: str, status: str, usage: dict | None = None,
+def update_status(rec_id: str, status: str, usage: dict | None = None,
                    evidence_refs: list | None = None) -> None:
     """Aggiorna esito + consumi di una richiesta già registrata (a fine job)."""
     usage = usage or {}
@@ -100,15 +98,11 @@ def _update_status(rec_id: str, status: str, usage: dict | None = None,
                 int(usage.get("completion_tokens", 0) or 0),
                 int(usage.get("total_tokens", 0) or 0),
                 float(usage.get("cost", 0) or 0),
-                __import__("json").dumps(evidence_refs or []),
+                json.dumps(evidence_refs or []),
                 rec_id,
             ),
         )
         c.commit()
-
-
-# alias per il writer in jobs.py (id status vengono passati dopo il crawl/LLM)
-update_status = _update_status
 
 
 def list_requests(client: str | None = None, limit: int = 100) -> list[dict]:

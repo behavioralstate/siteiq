@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SiteAnalysisStarted",
+  "description": "A worker has started the analysis requested by an AnalyzeSite command. Analyses wait in a queue when the service is busy, so this can come some time after the command was accepted.",
+  "type": "object",
+  "required": ["analysisId", "url"],
+  "properties": {
+    "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$", "description": "Identifier of the analysis; pass it to the queries." },
+    "url": { "type": "string", "description": "The URL being analysed." }
+  },
+  "additionalProperties": false
+}

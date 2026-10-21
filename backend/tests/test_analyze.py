@@ -4,7 +4,6 @@ Esegue un'analisi reale sulla fixture (crawler vero) con lo stub LLM e
 verifica: auth richiesta, job arriva a "done", e il consumo viene registrato.
 """
 import json
-import os
 import threading
 import time
 from functools import partial
@@ -19,11 +18,8 @@ from app.main import app
 ROOT = Path(__file__).resolve().parent.parent.parent
 FIXTURE = ROOT / "tests_fixture" / "site"
 
-# token di test per l'auth (config via env, non tocca il .env di produzione)
+# token di test (AUTH_CLIENTS impostato in conftest.py)
 TEST_TOKEN = "test-token-fabio"
-os.environ["AUTH_CLIENTS"] = f"fabio={TEST_TOKEN}"
-# DB usage isolato per i test
-os.environ["USAGE_DB"] = str(ROOT / "test_usage.db")
 
 
 class QuietHandler(SimpleHTTPRequestHandler):

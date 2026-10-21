@@ -67,8 +67,9 @@ def test_minify_limits_dom_nodes():
 
 
 def test_env_loader_ignores_comments_and_quotes(tmp_path):
-    from app.llm import _load_env, os
+    import os
+    from app.config import load_env
     (tmp_path / ".env").write_text("# commento\nKEY=value\nQUOTED=\"ciao mondo\"\n")
-    _load_env(str(tmp_path / ".env"))
+    load_env(str(tmp_path / ".env"))
     assert os.environ["KEY"] == "value"
     assert os.environ["QUOTED"] == "ciao mondo"

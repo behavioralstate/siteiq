@@ -4,56 +4,36 @@ Backend protetto: ogni client possiede un token condiviso (config in .env),
 e viene identificato da un nome. Serve sia per proteggere l'analisi sia per
 monitorare CHI richiede un test nel log di consumo.
 
-Config (.env), formato "nome=token" separati da ';':
-    AUTH_CLIENTS="fabio=sk-token-fabio;manuel=sk-token-manuel"
+Config (.env), formato "nome=token", più client separati da ',' o ';':
+    AUTH_CLIENTS=fabio=sk-token-fabio,manuel=sk-token-manuel
 In assenza, si può usare un singolo token con nome di default:
-    AUTH_TOKEN=sk-solo   (nome -> "default")
+    AUTH_TOKEN=sk-solo   (nome -> "default", o AUTH_CLIENT_DEFAULT)
 
 Il client invia:  Authorization: Bearer <token>
-FastAPI risolve il token -> nome per il log.
-
-Dipendenze: richiede la password solo su endpoint protetti; /health resta libero.
+FastAPI risolve il token -> nome per il log. /health resta libero.
 """
 from __future__ import annotations
 
-import os
-from pathlib import Path
+import hmac
+import re
 
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Request
 
-
-def _load_env(path: str | None = None):
-    """Carica un semplice .env (key=value, # commenti) senza dipendenze."""
-    env_path = Path(path or (Path(__file__).resolve().parent.parent / ".env"))
-    if not env_path.is_file():
-        return
-    for raw in env_path.read_text().splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, _, v = line.partition("=")
-        k, v = k.strip(), v.strip().strip('"').strip("'")
-        os.environ.setdefault(k, v)
-
-
-_load_env()
+from app.config import env_str
+from app.i18n import request_locale, t
 
 
 def _load_auth_config() -> dict[str, str]:
     """Restituisce {token: nome} dalla config."""
-    raw = os.environ.get("AUTH_CLIENTS", "").strip()
     mapping: dict[str, str] = {}
-    if raw:
-        for entry in raw.split(";"):
-            if "=" not in entry:
-                continue
-            name, _, token = entry.partition("=")
-            name, token = name.strip(), token.strip()
-            if token:
-                mapping[token] = name
-    solo = os.environ.get("AUTH_TOKEN", "").strip()
+    for entry in re.split(r"[,;]", env_str("AUTH_CLIENTS")):
+        name, sep, token = entry.partition("=")
+        name, token = name.strip(), token.strip()
+        if sep and name and token:
+            mapping[token] = name
+    solo = env_str("AUTH_TOKEN")
     if solo:
-        mapping[solo] = os.environ.get("AUTH_CLIENT_DEFAULT", "default")
+        mapping[solo] = env_str("AUTH_CLIENT_DEFAULT") or "default"
     return mapping
 
 
@@ -67,27 +47,30 @@ def _mapping() -> dict[str, str]:
     return _client_tokens
 
 
-def auth_mapping() -> dict[str, str]:
-    """Mappa {token: nome} — accessibile ai router (es. protezione WebSocket)."""
-    return dict(_mapping())
+def token_client(token: str | None) -> str | None:
+    """Nome del client per `token`, o None. Confronto a tempo costante."""
+    if not token:
+        return None
+    found = None
+    for known, name in _mapping().items():
+        if hmac.compare_digest(known.encode(), token.encode()):
+            found = name
+    return found
 
 
-def require_auth(authorization: str | None = Header(default=None)) -> str:
+def require_auth(request: Request, authorization: str | None = Header(default=None)) -> str:
     """Dependency FastAPI: verifica il Bearer e ritorna il nome del client."""
-    mapping = _mapping()
-    if not mapping:
-        # nessun token configurato: dev-treatment, ma logga come 'unauthenticated'
-        # (meglio bloccare: la feature va protetta). Alziamo 403 se disabilitato.
-        raise HTTPException(status_code=503, detail="auth non configurata (AUTH_TOKEN/AUTH_CLIENTS)")
+    loc = request_locale(request)
+    if not _mapping():
+        raise HTTPException(status_code=503, detail=t(loc, "errors.api.auth_not_configured"))
 
     token = None
     if authorization and authorization.lower().startswith("bearer "):
         token = authorization[7:].strip()
-
     if not token:
-        raise HTTPException(status_code=401, detail="autenticazione richiesta (Authorization: Bearer <token>)")
+        raise HTTPException(status_code=401, detail=t(loc, "errors.api.auth_required"))
 
-    client = mapping.get(token)
+    client = token_client(token)
     if client is None:
-        raise HTTPException(status_code=401, detail="token non valido")
+        raise HTTPException(status_code=401, detail=t(loc, "errors.api.token_invalid"))
     return client

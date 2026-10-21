@@ -12,42 +12,73 @@ recommendation/priority DEVE portare un evidence_ref verso il crawl_report.
 """
 from __future__ import annotations
 
-import os
-import uuid
-from pathlib import Path
+import json
+from datetime import datetime, timezone
+from functools import lru_cache
 
 import httpx
+from jsonschema import Draft202012Validator
+
+from app.config import REPO_ROOT, env_str
+from app.i18n import DEFAULT_LOCALE, SUPPORTED, Translator, t
+from app.prompt import AREA_IDS, MACRO_IDS
+
+FINAL_SCHEMA_PATH = REPO_ROOT / "schema" / "final_report.schema.json"
+USAGE_KEYS = ("prompt_tokens", "completion_tokens", "total_tokens", "cost")
 
 
-def _load_env(path: str | None = None):
-    """Carica un semplice .env (key=value, # commenti) senza dipendenze."""
-    env_path = Path(path or (Path(__file__).resolve().parent.parent / ".env"))
-    if not env_path.is_file():
-        return
-    for raw in env_path.read_text().splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, _, v = line.partition("=")
-        k, v = k.strip(), v.strip().strip('"').strip("'")
-        os.environ.setdefault(k, v)
+@lru_cache(maxsize=1)
+def _final_report_validator() -> Draft202012Validator:
+    with open(FINAL_SCHEMA_PATH, encoding="utf-8") as f:
+        return Draft202012Validator(json.load(f))
 
 
 class BaseLlm:
-    """Unit goette interface: analyze(raw_report: dict) -> dict (final_report)."""
+    """Interfaccia comune: analyze(raw_report, locale) -> dict (final_report),
+    con i testi per l'utente nella lingua `locale`."""
 
     name = "base"
+    is_stub = False
 
-    def analyze(self, raw_report: dict) -> dict:
+    def analyze(self, raw_report: dict, locale: str = DEFAULT_LOCALE) -> dict:
         raise NotImplementedError
+
+
+# Stub: voti ed evidenze fissi per area; i testi dimostrativi stanno nel
+# catalogo (stub.areas.<id>.analysis / strengths / weaknesses).
+_STUB_AREAS = {
+    "business_positioning": (7, None),
+    "differentiation": (8, None),
+    "ux": (5, "pages[0].vitals.LCP_ms"),
+    "design_branding": (6, "pages[0].qualitative.branding.has_og_image"),
+    "content": (5, "pages[0].qualitative.content.lorem_ipsum"),
+    "cro": (7, "pages[0].qualitative.booking_external_hosts"),
+    "technical_seo": (8, None),
+    "onpage_seo": (5, "pages[0].seo.headings"),
+    "offpage_seo": (4, None),
+    "performance_cwv": (3, "pages[0].vitals.LCP_ms"),
+    "performance_resources": (4, "pages[0].qualitative.media.total_images"),
+    "mobile": (4, "pages[0].vitals.LCP_ms"),
+    "accessibility": (8, "pages[0].accessibility.violations"),
+    "security": (4, "pages[0].http_headers"),
+    "marketing_analytics": (7, "pages[0].qualitative.tracking"),
+    "commercial": (6, "pages[0].qualitative.booking_external_hosts"),
+    "growth_potential": (7, None),
+}
+_STUB_MACRO = {"business": 7, "usability": 5, "conversion": 7, "search_visibility": 6,
+               "speed": 4, "marketing": 7, "commercial": 6}
+_STUB_OPPORTUNITY_PRIORITIES = ("High", "High", "Medium", "Medium", "Strategic")
+_STUB_GLOSSARY = ("LCP", "TBT", "CLS", "H1", "Alt")
 
 
 class StubLlm(BaseLlm):
     """Restituisce un final_report controllato (deterministico, offline)."""
 
     name = "stub"
+    is_stub = True
 
-    def analyze(self, raw_report: dict) -> dict:
+    def analyze(self, raw_report: dict, locale: str = DEFAULT_LOCALE) -> dict:
+        tr = Translator(locale)
         pages = raw_report.get("pages", [])
         ok_pages = [p for p in pages if p.get("status") == "ok"]
         a11y_violations = sum(
@@ -59,20 +90,16 @@ class StubLlm(BaseLlm):
         if a11y_violations:
             recommendations.append({
                 "priority": "P0",
-                "title": "Risolvi le violazioni di accessibilità",
-                "detail": (
-                    f"Trovate {a11y_violations} violazioni axe-core sul sito. "
-                    "Le più comuni sono contrasto colore, attributi alt mancanti "
-                    "e landmarks. Correggetele per conformità WCAG 2.2 AA."
-                ),
+                "title": tr("stub.rec_a11y.title"),
+                "detail": tr("stub.rec_a11y.detail", count=a11y_violations),
                 "evidence_ref": "accessibility.violations",
                 "effort": "medium",
             })
         if missing_alt:
             recommendations.append({
                 "priority": "P1",
-                "title": "Aggiungi testi alternativi alle immagini",
-                "detail": f"Almeno {missing_alt} immagini senza attributo alt.",
+                "title": tr("stub.rec_alt.title"),
+                "detail": tr("stub.rec_alt.detail", count=missing_alt),
                 "evidence_ref": "images_missing_alt",
                 "effort": "low",
             })
@@ -89,16 +116,12 @@ class StubLlm(BaseLlm):
         return {
             "schema_version": "1.0.0",
             "url": raw_report.get("url", ""),
-            "generated_at": __import__("datetime").datetime.now(
-                __import__("datetime").timezone.utc
-            ).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "summary": {
                 "verdict": ("ok" if score_val >= 80 else "attention"),
-                "highlights": [
-                    f"Analizzate {len(ok_pages)} pagine valide su {len(pages)} totali."
-                ],
+                "highlights": [tr("stub.highlight", ok=len(ok_pages), total=len(pages))],
                 "most_urgent": recommendations[0]["title"] if recommendations
-                else "Nessun problema urgente rilevato.",
+                else tr("stub.no_urgent"),
             },
             "scores": {
                 "development": {"value": score_val, "grade": grade},
@@ -114,138 +137,32 @@ class StubLlm(BaseLlm):
             ],
             "recommendations": recommendations,
             "areas": [
-                {"name": "Business/posizionamento", "score10": 7,
-                 "analysis": "Comunicazione chiara di posizionamento e servizi.",
-                 "strengths": ["Proposta completa", "Testo su ubicazione"],
-                 "weaknesses": ["Sezioni incomplete"], "evidence_ref": None},
-                {"name": "Differenziazione", "score10": 8,
-                 "analysis": "Vantaggi chiari per prenotazione diretta.",
-                 "strengths": ["Vantaggi misurabili", "Segmentazione"],
-                 "weaknesses": ["Promessa distintiva mancante"], "evidence_ref": None},
-                {"name": "UX", "score10": 5,
-                 "analysis": "Struttura ampia ma performance mobile critica.",
-                 "strengths": ["Architettura coerente", "Nessuna pagina rotta"],
-                 "weaknesses": ["LCP alto", "H1 mancanti"],
-                 "evidence_ref": "pages[0].vitals.LCP_ms"},
-                {"name": "Design/Branding", "score10": 6,
-                 "analysis": "Logo e favicon presenti, manca padding social.",
-                 "strengths": ["Logo personalizzato", "Favicon"],
-                 "weaknesses": ["Nessun og:image"],
-                 "evidence_ref": "pages[0].qualitative.branding.has_og_image"},
-                {"name": "Contenuti", "score10": 5,
-                 "analysis": "Testi curati su molte pagine, placeholder su camere.",
-                 "strengths": ["Testi descrittivi"],
-                 "weaknesses": ["Lorem ipsum"],
-                 "evidence_ref": "pages[0].qualitative.content.lorem_ipsum"},
-                {"name": "CRO", "score10": 7,
-                 "analysis": "Moduli e canali diffusi, funnel su piattaforma esterna.",
-                 "strengths": ["Canali di contatto", "Vantaggi diretti"],
-                 "weaknesses": ["Booking esterno"],
-                 "evidence_ref": "pages[0].qualitative.booking_external_hosts"},
-                {"name": "SEO tecnica", "score10": 8,
-                 "analysis": "HTTPS, sitemap, canonical corretti.",
-                 "strengths": ["HTTPS valido", "Sitemap completa"],
-                 "weaknesses": ["Nessuna criticità bloccante"], "evidence_ref": None},
-                {"name": "SEO on-page", "score10": 5,
-                 "analysis": "Home ottimizzata, pagine interne con title duplicati.",
-                 "strengths": ["Home corretta", "Punteggio SEO alto"],
-                 "weaknesses": ["H1 mancanti su interne"],
-                 "evidence_ref": "pages[0].seo.headings"},
-                {"name": "SEO off-page", "score10": 4,
-                 "analysis": "Solo un canale social rilevato; backlink non misurabili.",
-                 "strengths": ["Profilo social presente"],
-                 "weaknesses": ["Autorevolezza non misurabile"], "evidence_ref": None},
-                {"name": "Performance (Lighthouse/CWV)", "score10": 3,
-                 "analysis": "Performance mobile critica.",
-                 "strengths": ["CLS eccellente"],
-                 "weaknesses": ["LCP 15s", "TBT alto"],
-                 "evidence_ref": "pages[0].vitals.LCP_ms"},
-                {"name": "Performance (risorse)", "score10": 4,
-                 "analysis": "TTFB buono, ma risorse render-blocking non ottimizzate.",
-                 "strengths": ["TTFB nella norma"],
-                 "weaknesses": ["Immagini non ottimizzate"],
-                 "evidence_ref": "pages[0].qualitative.media.total_images"},
-                {"name": "Mobile", "score10": 4,
-                 "analysis": "Layout adattato ma performance su smartphone pessima.",
-                 "strengths": ["Viewport corretto"],
-                 "weaknesses": ["LCP mobile alto"],
-                 "evidence_ref": "pages[0].vitals.LCP_ms"},
-                {"name": "Accessibilità", "score10": 8,
-                 "analysis": "Punteggio axe discreto, contrasto e alt da sistemare.",
-                 "strengths": ["Lang corretto"],
-                 "weaknesses": ["Contrasto", "Alt mancanti"],
-                 "evidence_ref": "pages[0].accessibility.violations"},
-                {"name": "Sicurezza", "score10": 4,
-                 "analysis": "HTTPS valido ma header di sicurezza assenti.",
-                 "strengths": ["HTTPS valido", "Redirect corretto"],
-                 "weaknesses": ["Header mancanti"],
-                 "evidence_ref": "pages[0].http_headers"},
-                {"name": "Marketing analytics", "score10": 7,
-                 "analysis": "GTM e GA4 presenti.",
-                 "strengths": ["GA4+GTM installati"],
-                 "weaknesses": ["Nessuna conversione configurata"],
-                 "evidence_ref": "pages[0].qualitative.tracking"},
-                {"name": "Commerciale", "score10": 6,
-                 "analysis": "Forte impronta commerciale ma booking delegato.",
-                 "strengths": ["Vantaggi diretti", "Molti canali"],
-                 "weaknesses": ["Funnel esterno"],
-                 "evidence_ref": "pages[0].qualitative.booking_external_hosts"},
-                {"name": "Potenziale di crescita", "score10": 7,
-                 "analysis": "Base di contenuti ricca, problemi risolvibili con priorità.",
-                 "strengths": ["Struttura ricca", "Brand storico"],
-                 "weaknesses": ["Performance e contenuti da sistemare"],
-                 "evidence_ref": None},
+                {"id": area_id, "score10": score,
+                 "analysis": tr(f"stub.areas.{area_id}.analysis"),
+                 "strengths": tr.list(f"stub.areas.{area_id}.strengths"),
+                 "weaknesses": tr.list(f"stub.areas.{area_id}.weaknesses"),
+                 "evidence_ref": evidence}
+                for area_id, (score, evidence) in _STUB_AREAS.items()
             ],
             "overall": {
                 "score10": 5,
-                "verdict": "Il sito ha problemi seri da sistemare.",
-                "macro_areas": {
-                    "Business": 7, "Facilità d'uso": 5, "Da visite a clienti": 7,
-                    "Visibilità su Google": 6, "Velocità": 4, "Marketing": 7,
-                    "Commerciale": 6,
-                },
+                "verdict": tr("stub.overall_verdict"),
+                "macro_areas": dict(_STUB_MACRO),
             },
             "action_plan": {
-                "immediate_0_30": [
-                    "Aggiungere header di sicurezza",
-                    "Inserire H1 mancanti",
-                    "Correggere titoli duplicati",
-                    "Attivare compressione testo",
-                ],
-                "medium_30_90": [
-                    "Ottimizzare risorse render-blocking",
-                    "Configurare conversioni in GA4",
-                    "Ottimizzare immagini con lazy loading",
-                ],
-                "long_90_365": [
-                    "Integrare il booking engine nel sito",
-                    "Creare landing page per segmenti",
-                    "Sviluppare strategia social e reputazione",
-                ],
+                "immediate_0_30": tr.list("stub.plan.immediate_0_30"),
+                "medium_30_90": tr.list("stub.plan.medium_30_90"),
+                "long_90_365": tr.list("stub.plan.long_90_365"),
             },
             "opportunities": [
-                {"title": "Ottimizzazione performance completa",
-                 "benefit": "Riduzione tempi di caricamento e miglioramento UX",
-                 "priority": "High"},
-                {"title": "Correzione struttura H1 e titoli",
-                 "benefit": "Migliore accessibilità e SEO",
-                 "priority": "High"},
-                {"title": "Completamento contenuti",
-                 "benefit": "Aumento fiducia e conversione",
-                 "priority": "Medium"},
-                {"title": "Integrazione booking engine",
-                 "benefit": "Controllo diretto del funnel",
-                 "priority": "Medium"},
-                {"title": "Landing page per nicchie",
-                 "benefit": "Catturare segmenti specifici",
-                 "priority": "Strategic"},
+                {"title": tr(f"stub.opportunities.{i}.title"),
+                 "benefit": tr(f"stub.opportunities.{i}.benefit"),
+                 "priority": priority}
+                for i, priority in enumerate(_STUB_OPPORTUNITY_PRIORITIES)
             ],
             "glossary": [
-                {"term": "LCP", "definition": "Tempo in cui il contenuto principale diventa visibile."},
-                {"term": "TBT", "definition": "Tempo in cui la pagina non risponde all'utente."},
-                {"term": "CLS", "definition": "Stabilità visiva della pagina."},
-                {"term": "H1", "definition": "Intestazione principale di una pagina."},
-                {"term": "Alt", "definition": "Testo alternativo delle immagini per screen reader."},
+                {"term": term, "definition": tr(f"stub.glossary.{term}")}
+                for term in _STUB_GLOSSARY
             ],
             "commercial_proposal": None,
         }
@@ -258,18 +175,27 @@ class OpenRouterLlm(BaseLlm):
 
     def __init__(self, base_url: str | None = None, api_key: str | None = None,
                  model: str | None = None):
-        _load_env()
-        self.base_url = os.environ.get("LLM_BASE_URL", base_url or "https://openrouter.ai/api/v1")
-        self.api_key = os.environ.get("LLM_API_KEY", api_key or "")
-        self.model = os.environ.get("LLM_MODEL", model or "deepseek/deepseek-chat-v3.1")
+        # argomenti espliciti > variabili d'ambiente > default
+        self.base_url = base_url or env_str("LLM_BASE_URL") or "https://openrouter.ai/api/v1"
+        self.api_key = api_key or env_str("LLM_API_KEY")
+        self.model = model or env_str("LLM_MODEL") or "deepseek/deepseek-chat-v3.1"
+        # consumo cumulato dell'ultima analyze() (tutti i tentativi)
+        self.last_usage: dict = {}
 
-    def analyze(self, raw_report: dict) -> dict:
+    def _add_usage(self, usage: dict) -> None:
+        for k in USAGE_KEYS:
+            v = usage.get(k)
+            if isinstance(v, (int, float)):
+                self.last_usage[k] = self.last_usage.get(k, 0) + v
+
+    def analyze(self, raw_report: dict, locale: str = DEFAULT_LOCALE) -> dict:
         if not self.api_key:
-            raise RuntimeError("LLM_API_KEY non impostata (usa --stub per test/offline)")
+            raise RuntimeError("LLM_API_KEY non impostata (usa lo stub per test/offline)")
         from app.prompt import build_user_prompt, get_system_prompt
-        system = get_system_prompt()
+        system = get_system_prompt(locale)
         user = build_user_prompt(raw_report)
         url = f"{self.base_url.rstrip('/')}/chat/completions"
+        self.last_usage = {}
         last_err = None
         for attempt in range(2):  # fino a 2 tentativi: il 1° può restituire JSON troncato
             r = httpx.post(
@@ -289,8 +215,8 @@ class OpenRouterLlm(BaseLlm):
             )
             r.raise_for_status()
             payload = r.json()
+            self._add_usage(payload.get("usage") or {})
             content = payload["choices"][0]["message"]["content"]
-            self.last_usage = payload.get("usage", {})
             try:
                 data = self._extract_json(content)
                 self._validate(data)
@@ -299,23 +225,23 @@ class OpenRouterLlm(BaseLlm):
                 last_err = f"{type(e).__name__}: {e}"
                 if attempt == 0:
                     user += ("\n\nNota: la risposta precedente non era un JSON valido "
-                             "(probabilmente troncato). Ricomponi l'intero final_report "
+                             "o non rispettava lo schema. Ricomponi l'intero final_report "
                              "come UN SOLO oggetto JSON completo, senza troncarlo.")
         raise RuntimeError(f"LLM ha prodotto JSON non valido dopo 2 tentativi: {last_err}")
 
     @staticmethod
     def _extract_json(content: str) -> dict:
-        """Trova l'oggetto JSON nella risposta (gestendo testo o preambolo) e lo decodifica."""
-        import json as _json
+        """Trova l'oggetto JSON nella risposta (gestendo preambolo o testo dopo
+        la chiusura) e lo decodifica. Un JSON davvero troncato resta un errore."""
         s = content.strip()
         # se non parte con '{', cerca la prima '{'
         start = s.find("{")
         if start > 0:
             s = s[start:]
         try:
-            return _json.loads(s)
-        except _json.JSONDecodeError:
-            # JSON troncato: trova l'ultima '}' bilanciata
+            return json.loads(s)
+        except json.JSONDecodeError:
+            # testo dopo il JSON: taglia alla '}' che chiude l'oggetto radice
             depth = 0
             end = -1
             in_str = False
@@ -338,22 +264,13 @@ class OpenRouterLlm(BaseLlm):
                     if depth == 0:
                         end = i
             if end > 0:
-                return _json.loads(s[: end + 1])
+                return json.loads(s[: end + 1])
             raise
-
-    # Ultimo utilizzo token registrato (dict: prompt_tokens, completion_tokens, total_tokens, ...)
-    last_usage: dict = {}
 
     def _validate(self, data: dict):
         """Normalizza scostamenti comuni dell'LLM e valida contro final_report.schema.json."""
         self._normalize(data)
-        import json as _json
-        from pathlib import Path as _P
-        from jsonschema import Draft202012Validator
-        schema = _json.load(
-            open(_P(__file__).resolve().parent.parent.parent / "schema" / "final_report.schema.json")
-        )
-        errs = list(Draft202012Validator(schema).iter_errors(data))
+        errs = list(_final_report_validator().iter_errors(data))
         if errs:
             raise RuntimeError(f"LLM ha prodotto report non conforme: {errs[:3]}")
 
@@ -361,7 +278,18 @@ class OpenRouterLlm(BaseLlm):
         """Sistema i formati vicini ma non conformi emessi dai modelli:
         - glossary come dict {term: definition} → lista di {term, definition};
         - opportunities come dict {title: benefit} → lista di {title, benefit, priority};
-        - action_plan chiavi eventualmente in italiano → forma attesa inglese."""
+        - action_plan chiavi eventualmente in italiano → forma attesa inglese;
+        - voti delle macro-aree come stringhe numeriche ("7") → numeri;
+        - aree e macro-aree indicate col nome (in qualsiasi lingua) → id stabili."""
+        _ids_from_labels(d)
+        ov = d.get("overall")
+        if isinstance(ov, dict) and isinstance(ov.get("macro_areas"), dict):
+            for k, v in ov["macro_areas"].items():
+                if isinstance(v, str):
+                    try:
+                        ov["macro_areas"][k] = float(v.strip().split("/")[0])
+                    except ValueError:
+                        pass
         # glossary: dict {term: definition}
         g = d.get("glossary")
         if isinstance(g, dict):
@@ -388,6 +316,33 @@ class OpenRouterLlm(BaseLlm):
                     if tgt:
                         rebuilt.setdefault(tgt, []).extend(v if isinstance(v, list) else [v])
                 d["action_plan"] = rebuilt if rebuilt else ap
+
+
+@lru_cache(maxsize=None)
+def _label_index(section: str, ids: tuple) -> dict:
+    """{etichetta in minuscolo (ogni locale): id} per aree o macro-aree."""
+    index = {}
+    for loc in SUPPORTED:
+        for item_id in ids:
+            index[t(loc, f"{section}.{item_id}").strip().lower()] = item_id
+    return index
+
+
+def _ids_from_labels(d: dict) -> None:
+    """Un modello può ancora usare i nomi mostrati invece degli id: rimappa."""
+    areas_by_label = _label_index("areas", AREA_IDS)
+    for area in d.get("areas") or []:
+        if isinstance(area, dict) and area.get("id") not in AREA_IDS:
+            found = areas_by_label.get(str(area.get("name") or area.get("id") or "").strip().lower())
+            if found:
+                area["id"] = found
+    ov = d.get("overall")
+    if isinstance(ov, dict) and isinstance(ov.get("macro_areas"), dict):
+        macro_by_label = _label_index("macro", MACRO_IDS)
+        ov["macro_areas"] = {
+            (k if k in MACRO_IDS else macro_by_label.get(str(k).strip().lower(), k)): v
+            for k, v in ov["macro_areas"].items()
+        }
 
 
 def make_llm(stub: bool = False) -> BaseLlm:

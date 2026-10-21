@@ -13,6 +13,8 @@ Fallback: se l'API non risponde, stato 'unavailable' — non blocchiamo il repor
 """
 from __future__ import annotations
 
+from urllib.parse import quote
+
 import httpx
 from packaging.version import Version
 
@@ -75,7 +77,7 @@ def _fmt_vulns(raw: list[dict]) -> list[dict]:
 
 def fetch_core_vulns(core_version: str) -> dict:
     """Vuln note per una specifica versione di WordPress core."""
-    url = f"{API_BASE}/core/{core_version}"
+    url = f"{API_BASE}/core/{quote(core_version, safe='')}"
     try:
         r = httpx.get(url, timeout=TIMEOUT, follow_redirects=True)
         r.raise_for_status()
@@ -96,7 +98,7 @@ def fetch_plugin_vulns(slug: str, version: str | None) -> dict:
     version_unknown=True e vulnerabilities vuote (lo stato lo decide il chiamante:
     "non verificabile", non "vulnerabile").
     """
-    url = f"{API_BASE}/plugin/{slug}"
+    url = f"{API_BASE}/plugin/{quote(slug, safe='')}"
     try:
         r = httpx.get(url, timeout=TIMEOUT, follow_redirects=True)
         r.raise_for_status()

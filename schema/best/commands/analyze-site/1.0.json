@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnalyzeSite",
+  "description": "Analyse one public web page: HTTP status and redirects, security headers, SEO signals, accessibility (axe-core), Core Web Vitals and, for WordPress sites, known vulnerabilities of core and plugins. Only the given URL is fetched, never other pages of the site. Processing is asynchronous and usually takes 15 to 60 seconds; the outcome is a SiteAnalysisCompleted or SiteAnalysisFailed event carrying this command's correlationid, whose data gives the analysisId to pass to the get-findings query. Set source to a URI identifying your agent: it is recorded, never trusted. Results are public to anyone holding the analysisId.",
+  "commandType": "AnalyzeSite",
+  "produces": ["SiteAnalysisStarted", "SiteCrawled", "SiteAnalysisCompleted", "SiteAnalysisFailed"],
+  "type": "object",
+  "required": ["url"],
+  "properties": {
+    "url": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 2048,
+      "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^\\s<>\"]+$",
+      "description": "Absolute http or https URL of the page to analyse. Must be publicly reachable: private, loopback and link-local addresses are rejected.",
+      "examples": ["https://example.com/"]
+    }
+  },
+  "additionalProperties": false
+}

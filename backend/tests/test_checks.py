@@ -65,3 +65,16 @@ def test_error_pages_add_diagnostic_check():
     checks = build_checks(crawl)
     dev = checks["development"]
     assert any(c["id"] == "scan" and c["status"] == "error" for c in dev)
+
+def test_hreflang_is_never_a_warning():
+    """hreflang assente (sito monolingua) o presente: nessuno dei due è un problema."""
+    for count in (0, 3):
+        crawl = _crawl()
+        crawl["pages"][0]["seo"]["hreflang_count"] = count
+        hreflang = next(c for c in build_checks(crawl)["seo"] if c["id"] == "hreflang")
+        assert hreflang["status"] == "ok"
+
+
+def test_no_always_ok_robots_check():
+    dev_ids = {c["id"] for c in build_checks(_crawl())["development"]}
+    assert "robots" not in dev_ids

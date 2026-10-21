@@ -3,7 +3,6 @@
 Evita l'SMTP reale: monkeypatch di app.mailer.send_confirmation.
 """
 import json
-import os
 import threading
 import time
 from functools import partial
@@ -12,9 +11,6 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-
-os.environ["AUTH_CLIENTS"] = "fabio=test-token-fabio"
-os.environ["USAGE_DB"] = "/home/fabio/siteiq/test_lead_usage.db"
 
 from app.main import app  # noqa: E402
 
@@ -38,7 +34,7 @@ def fixture_server():
 def client(monkeypatch):
     # blocca l'invio email reale; cattura il token per i passi successivi
     captured = {}
-    def fake_send(email, confirm_url):
+    def fake_send(email, confirm_url, locale=None):
         from urllib.parse import parse_qs, urlparse
         captured["url"] = confirm_url
         captured["token"] = parse_qs(urlparse(confirm_url).query)["token"][0]

@@ -82,6 +82,10 @@
         "images_missing_alt": { "type": "integer", "minimum": 0 },
         "charset_ok": { "type": "boolean" },
         "robots_respected": { "type": "boolean" },
+        "error_detail": {
+          "description": "Motivo per status error/skipped (diagnostica interna, non mostrato al pubblico).",
+          "type": "string"
+        },
         "wordpress": {
           "description": "Fingerprint WordPress (presente solo se il sito è WP): versione core, plugin, tema.",
           "type": "object",

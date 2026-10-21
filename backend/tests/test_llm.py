@@ -99,3 +99,37 @@ def test_extract_json_handles_preambolo_and_truncation():
     import pytest as _p
     with _p.raises(Exception):
         llm._extract_json('{"a": 1, "b": 2')  # noqa: RUF100
+
+def test_openrouter_args_override_env(monkeypatch):
+    from app.llm import OpenRouterLlm
+    monkeypatch.setenv("LLM_MODEL", "env/model")
+    monkeypatch.setenv("LLM_API_KEY", "env-key")
+    llm = OpenRouterLlm(model="arg/model", api_key="arg-key")
+    assert llm.model == "arg/model" and llm.api_key == "arg-key"
+    assert OpenRouterLlm().model == "env/model"
+
+
+def test_openrouter_usage_sums_all_attempts(monkeypatch):
+    """Se il 1° tentativo è invalido, anche i suoi token vanno contati."""
+    import json as _json
+
+    import app.llm as llm_mod
+    from app.llm import OpenRouterLlm, StubLlm
+    good = StubLlm().analyze({"url": "https://example.com", "pages": []})
+    replies = iter(["{non json", _json.dumps(good)])
+
+    class FakeResp:
+        def __init__(self, content):
+            self._content = content
+        def raise_for_status(self):
+            pass
+        def json(self):
+            return {"choices": [{"message": {"content": self._content}}],
+                    "usage": {"prompt_tokens": 100, "completion_tokens": 10,
+                              "total_tokens": 110, "cost": 0.5}}
+
+    monkeypatch.setattr(llm_mod.httpx, "post", lambda *a, **k: FakeResp(next(replies)))
+    llm = OpenRouterLlm(api_key="k")
+    llm.analyze({"url": "https://example.com", "pages": []})
+    assert llm.last_usage["total_tokens"] == 220
+    assert llm.last_usage["cost"] == 1.0

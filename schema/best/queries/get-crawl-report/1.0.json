@@ -1,0 +1,21 @@
+{
+  "description": "The raw measurements behind the findings of an analysis: HTTP headers, redirect chain, SEO tags, axe-core violations with their DOM nodes, Core Web Vitals, WordPress fingerprint and page signals. Use it to verify a finding or to look deeper than the checks do. Null until the page has been crawled. Can be large.",
+  "parameters": {
+    "type": "object",
+    "required": ["analysisId"],
+    "properties": {
+      "analysisId": { "type": "string", "pattern": "^[0-9a-f]{32}$" }
+    },
+    "additionalProperties": false
+  },
+  "response": {
+    "type": "object",
+    "required": ["analysisId", "status", "crawlReport"],
+    "properties": {
+      "analysisId": { "type": "string" },
+      "status": { "enum": ["pending", "running", "completed", "failed"] },
+      "crawlReport": { "type": ["object", "null"], "description": "Crawl report in the SiteIQ crawl_report 1.0.0 format, or null." }
+    },
+    "additionalProperties": false
+  }
+}

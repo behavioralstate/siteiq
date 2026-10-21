@@ -9,15 +9,21 @@ Core Web Vitals (CDP), header sicurezza, segnali SEO, alt mancanti, charset.
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote, urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
 from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import Page, sync_playwright
 
+from app.egress_proxy import EgressProxy
+from app.netguard import BlockedTarget, TargetGuard
 from app.vitals import _OBSERVER_SCRIPT, read_vitals
-from app.wpfingerprint import fingerprint
+from app.wpfingerprint import (core_version_from_feed, drop_core_versioned_plugins,
+                               fingerprint, version_from_readme)
+
+log = logging.getLogger(__name__)
 
 SECURITY_HEADERS = ("strict-transport-security", "content-security-policy",
                     "x-frame-options", "x-content-type-options", "referrer-policy",
@@ -223,129 +229,133 @@ def _extract_security_headers(resp) -> dict:
     return out
 
 
+USER_AGENT = "SiteIQBot/0.1 (+SiteIQ analysis)"
+ROBOTS_TIMEOUT_S = 10
+
+
+def _robots_allows(url: str, guard: TargetGuard) -> bool:
+    """robots.txt letto con timeout e con la protezione SSRF. Se non è
+    leggibile (rete, 404, host bloccato) si assume consentito, come fanno i crawler."""
+    rp = RobotFileParser()
+    try:
+        resp = guard.get(urljoin(url, "/robots.txt"), timeout=ROBOTS_TIMEOUT_S,
+                         headers={"User-Agent": USER_AGENT})
+    except Exception:
+        return True
+    if resp.status_code in (401, 403):
+        return False
+    if resp.status_code >= 400:
+        return True
+    rp.parse(resp.text.splitlines())
+    return rp.can_fetch("SiteIQBot", url)
+
+
+def _wordpress_enrich(report: dict, page_html: str, url: str, guard: TargetGuard) -> None:
+    """Fingerprint WordPress + versione core dal feed + versioni plugin dal readme."""
+    try:
+        wp = fingerprint(page_html)
+    except Exception:
+        wp = {"is_wordpress": False}
+    report["wordpress"] = wp
+    if not wp.get("is_wordpress"):
+        return
+
+    base = urlparse(url)
+    origin = f"{base.scheme}://{base.netloc}"
+    headers = {"User-Agent": USER_AGENT}
+
+    # Versione core non esposta nel DOM (meta generator rimosso): prova i feed.
+    if not wp.get("core"):
+        for feed_path in ("/feed/", "/?feed=rss2"):
+            try:
+                fr = guard.get(origin + feed_path, timeout=10, headers=headers)
+            except Exception:
+                continue
+            if fr.status_code == 200:
+                feed_core = core_version_from_feed(fr.text)
+                if feed_core:
+                    wp["core"] = feed_core
+                    break
+
+    # ?ver= uguale alla versione core = default di WordPress, non del plugin.
+    drop_core_versioned_plugins(wp)
+
+    # Plugin senza versione: readme.txt pubblico (Stable tag / Version).
+    for pl in wp.get("plugins", []):
+        if pl.get("version"):
+            continue
+        slug = quote(pl["slug"], safe="")
+        try:
+            rr = guard.get(f"{origin}/wp-content/plugins/{slug}/readme.txt",
+                           timeout=8, headers=headers)
+        except Exception:
+            continue
+        if rr.status_code == 200:
+            v = version_from_readme(rr.text)
+            if v:
+                pl["version"] = v
+
+
 def _scan_single(url: str, progress=None) -> dict:
-    """Scansiona e popola il report della singola pagina. Chiama progress una volta."""
+    """Scansiona e popola il report della singola pagina."""
     if progress:
         progress(0, 1, url)
 
-    rp = RobotFileParser()
+    guard = TargetGuard()
     try:
-        rp.set_url(urljoin(url, "/robots.txt"))
-        rp.read()
-        allowed = rp.can_fetch("SiteIQBot", url)
-    except Exception:
-        allowed = True
-
-    if not allowed:
+        guard.validate_url(url)
+    except BlockedTarget as e:
+        report = _empty_report("p001", url, "error", 0)
+        report["error_detail"] = str(e)
         if progress:
             progress(1, 1, url)
-        return _empty_report("p001", url, "skipped", 0)
+        return report
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
+    if not _robots_allows(url, guard):
+        if progress:
+            progress(1, 1, url)
+        report = _empty_report("p001", url, "skipped", 0)
+        report["error_detail"] = "pagina esclusa da robots.txt"
+        return report
+
+    # Tutto il traffico del browser passa dal proxy di uscita (SSRF).
+    with EgressProxy(guard) as proxy, sync_playwright() as p:
+        browser = p.chromium.launch(proxy={"server": proxy.url})
         try:
-            context = browser.new_context(user_agent="SiteIQBot/0.1 (+SiteIQ analysis)")
+            context = browser.new_context(user_agent=USER_AGENT)
             page = context.new_page()
             report = _empty_report("p001", url, "error", 0)
             try:
-                # installa gli observer vitals PRIMA della navigazione (su WP lenti
-                # il load è lungo: gli observer via page.evaluate post-hoc perdono le
-                # metriche già emesse -> LCP/FCP=TBT 0). TTFB via CDP responseReceived.
+                # Observer vitals installati PRIMA della navigazione: su siti
+                # lenti un evaluate post-hoc perde le metriche già emesse.
                 page.add_init_script(_OBSERVER_SCRIPT)
-                ttfb = 0.0
-                cdp = context.new_cdp_session(page)
-                cdp.send("Performance.enable")
-                def _capture_ttfb(event):
-                    nonlocal ttfb
-                    if event.get("type") == "Document":
-                        t = (event.get("response") or {}).get("timing") or {}
-                        ttfb = t.get("requestTime", 0)
-                cdp.on("Network.responseReceived", _capture_ttfb)
-
                 resp = page.goto(url, timeout=30000, wait_until="domcontentloaded")
-                status = resp.status if resp else 0
+                if resp is None:
+                    raise RuntimeError("nessuna risposta HTTP")
+                status = resp.status
                 ok = status < 400
-                report = _empty_report("p001", url, "ok" if ok else "error", status or 0)
-                report["redirect_chain"] = _redirect_chain(resp) if resp else []
-                report["http_headers"] = _extract_security_headers(resp) if resp else {}
+                report = _empty_report("p001", url, "ok" if ok else "error", status)
+                report["redirect_chain"] = _redirect_chain(resp)
+                report["http_headers"] = _extract_security_headers(resp)
                 if ok:
                     page.wait_for_timeout(6000)  # finestra di osservazione performance
-                    report["vitals"] = read_vitals(page, ttfb_ms=int(ttfb))
+                    report["vitals"] = read_vitals(page)
                     report["seo"] = _extract_seo(page)
                     report["images_missing_alt"] = page.eval_on_selector_all(
                         "img:not([alt])", "els => els.length"
                     )
-                    report["charset_ok"] = (
-                        page.query_selector("meta[charset]") is not None
-                    )
+                    report["charset_ok"] = page.query_selector("meta[charset]") is not None
                     report["accessibility"]["violations"] = _axe_violations(page)
                     report["accessibility"]["contrast_violations"] = sum(
                         1 for v in report["accessibility"]["violations"]
                         if v["rule"] == "color-contrast"
                     )
                     report["qualitative"] = _extract_qualitative(page, url)
-                    # WordPress: fingerprint (versione core, plugin, tema) dal DOM
-                    try:
-                        report["wordpress"] = fingerprint(page.content())
-                    except Exception:
-                        report["wordpress"] = {"is_wordpress": False}
-                    # Se è WP ma la versione core non è esposta nel DOM (meta generator
-                    # rimosso dal tema), prova dal feed RSS/Atom pubblici di WP.
-                    wp = report.get("wordpress") or {}
-                    if wp.get("is_wordpress") and not wp.get("core"):
-                        try:
-                            from app.wpfingerprint import core_version_from_feed
-                            import httpx as _httpx
-                            base = urlparse(url)
-                            feed_core = None
-                            for feed_path in ("/feed/", "/?feed=rss2"):
-                                try:
-                                    fr = _httpx.get(
-                                        f"{base.scheme}://{base.netloc}{feed_path}",
-                                        headers={"User-Agent": "SiteIQBot/0.1 (+SiteIQ analysis)"},
-                                        timeout=10,
-                                        follow_redirects=True,
-                                    )
-                                    if fr.status_code == 200:
-                                        feed_core = core_version_from_feed(fr.text)
-                                        if feed_core:
-                                            break
-                                except Exception:
-                                    continue
-                            if feed_core:
-                                report["wordpress"]["core"] = feed_core
-                        except Exception:
-                            pass
-                    # Plugin senza versione nel DOM (?ver= assente): prova dal
-                    # readme.txt pubblico di WordPress (/wp-content/plugins/<slug>/readme.txt)
-                    # con "Stable tag:" / "Version:" — file pubblico standard di ogni plugin.
-                    wp = report.get("wordpress") or {}
-                    if wp.get("is_wordpress"):
-                        try:
-                            from app.wpfingerprint import version_from_readme
-                            import httpx as _httpx2
-                            base = urlparse(url)
-                            for pl in wp.get("plugins", []):
-                                if pl.get("version"):
-                                    continue
-                                slug = pl["slug"]
-                                try:
-                                    rr = _httpx2.get(
-                                        f"{base.scheme}://{base.netloc}/wp-content/plugins/{slug}/readme.txt",
-                                        headers={"User-Agent": "SiteIQBot/0.1 (+SiteIQ analysis)"},
-                                        timeout=8,
-                                        follow_redirects=True,
-                                    )
-                                    if rr.status_code == 200:
-                                        v = version_from_readme(rr.text)
-                                        if v:
-                                            pl["version"] = v
-                                except Exception:
-                                    continue
-                        except Exception:
-                            pass
-            except Exception:
+                    _wordpress_enrich(report, page.content(), url, guard)
+            except Exception as e:
+                log.warning("crawl fallito per %s: %s", url, e)
                 report = _empty_report("p001", url, "error", 0)
+                report["error_detail"] = f"{type(e).__name__}: {e}"[:500]
         finally:
             browser.close()
 

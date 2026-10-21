@@ -116,3 +116,20 @@ def test_check_wordpress_summary():
     assert res["summary"]["plugins_total"] == 2
     assert res["summary"]["core_vulnerable"] in (True, False)  # dipende da rete/versione
     assert "core" in res and "plugins" in res
+
+def test_text_mention_is_not_wordpress():
+    """Un articolo che cita "WordPress 5.2" non rende WP il sito né ne fissa la versione."""
+    html = "<html><body><p>Abbiamo migrato da WordPress 5.2 a un CMS statico.</p></body></html>"
+    assert wpf.is_wordpress(html) is False
+    assert wpf.core_version(html) is None
+
+
+def test_plugin_version_equal_to_core_is_discarded():
+    """?ver=<core> è il default di WordPress, non la versione del plugin."""
+    html = ('<meta name="generator" content="WordPress 6.4.2">'
+            '<script src="/wp-content/plugins/foo/x.js?ver=6.4.2"></script>'
+            '<script src="/wp-content/plugins/bar/y.js?ver=2.1.0"></script>')
+    fp = wpf.fingerprint(html)
+    wpf.drop_core_versioned_plugins(fp)
+    versions = {p["slug"]: p["version"] for p in fp["plugins"]}
+    assert versions == {"foo": None, "bar": "2.1.0"}

@@ -1,7 +1,8 @@
-"""Test module vitals (Task 9 — Core Web Vitals via CDP).
+"""Test module vitals (Task 9 — Core Web Vitals).
 
-Serve tests_fixture/vitals e verifica che collect_vitals ritorni chiavi
-presenti nel modello `vitals` (schema v1.0.0).
+Serve tests_fixture/vitals e verifica che read_vitals (observer installati prima
+della navigazione, come nel crawler) ritorni le chiavi del modello `vitals`
+(schema v1.0.0) con valori plausibili.
 """
 import threading
 from functools import partial
@@ -12,7 +13,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-from app.vitals import collect_vitals, collect_vitals_on_goto, read_vitals  # noqa: E402
+from app.vitals import _OBSERVER_SCRIPT, read_vitals  # noqa: E402
 
 FIXTURE = ROOT / "tests_fixture" / "vitals"
 REQUIRED_KEYS = {"LCP_ms", "INP_or_TBT_ms", "CLS", "FCP_ms", "TTFB_ms"}
@@ -34,29 +35,37 @@ def vitals_server():
     httpd.shutdown()
 
 
-def test_vitals_has_all_schema_keys(vitals_server):
+def _vitals_like_crawler(url: str) -> dict:
     with sync_playwright() as p:
         b = p.chromium.launch()
         try:
             page = b.new_page()
-            data = collect_vitals_on_goto(page, f"{vitals_server}/")
-            assert REQUIRED_KEYS <= set(data.keys()), data
-            assert isinstance(data["LCP_ms"], int)
-            assert isinstance(data["CLS"], (int, float))
+            page.add_init_script(_OBSERVER_SCRIPT)
+            page.goto(url, wait_until="domcontentloaded")
+            page.wait_for_timeout(2000)
+            return read_vitals(page)
         finally:
             b.close()
+
+
+def test_vitals_has_all_schema_keys(vitals_server):
+    data = _vitals_like_crawler(f"{vitals_server}/")
+    assert REQUIRED_KEYS <= set(data.keys()), data
+    assert isinstance(data["LCP_ms"], int)
+    assert isinstance(data["CLS"], (int, float))
 
 
 def test_vitals_values_are_non_negative(vitals_server):
-    with sync_playwright() as p:
-        b = p.chromium.launch()
-        try:
-            page = b.new_page()
-            data = collect_vitals_on_goto(page, f"{vitals_server}/")
-            for k in ("LCP_ms", "INP_or_TBT_ms", "FCP_ms", "TTFB_ms"):
-                assert data[k] >= 0, f"{k} negativo: {data}"
-        finally:
-            b.close()
+    data = _vitals_like_crawler(f"{vitals_server}/")
+    for k in ("LCP_ms", "INP_or_TBT_ms", "FCP_ms", "TTFB_ms"):
+        assert data[k] >= 0, f"{k} negativo: {data}"
+
+
+def test_ttfb_is_measured(vitals_server):
+    """Regressione: TTFB veniva da un evento CDP mai abilitato -> sempre 0."""
+    data = _vitals_like_crawler(f"{vitals_server}/")
+    assert data["TTFB_ms"] > 0, data
+    assert data["TTFB_ms"] < 30_000, data
 
 
 def test_lcp_fcp_really_captured(vitals_server):
@@ -67,7 +76,7 @@ def test_lcp_fcp_really_captured(vitals_server):
         b = p.chromium.launch()
         try:
             pg = b.new_page()
-            pg.add_init_script(__import__("app.vitals", fromlist=["_OBSERVER_SCRIPT"])._OBSERVER_SCRIPT)
+            pg.add_init_script(_OBSERVER_SCRIPT)
             resp = pg.goto(f"{vitals_server}/", wait_until="domcontentloaded")
             pg.wait_for_timeout(4000)
             d = read_vitals(pg)

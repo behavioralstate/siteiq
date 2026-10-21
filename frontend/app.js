@@ -1,10 +1,19 @@
 /* SiteIQ — landing pubblica: flusso lead -> conferma email -> 1 scan.
-   Endpoint backend pubblici: /api/lead, /api/confirm, /api/scan, /api/analyze/{id}
+   Endpoint backend pubblici: /api/lead, /api/confirm, /api/scan, /api/scan/{id}
+   Testi dal catalogo (I18N, vedi i18n.js); ogni chiamata invia Accept-Language,
+   così anche i messaggi del server arrivano nella lingua scelta.
 */
 "use strict";
 const $ = (s) => document.querySelector(s);
 
-window.addEventListener("DOMContentLoaded", () => {
+/** Messaggio d'errore del server se è testo, altrimenti uno nostro (le 422 di
+    validazione di FastAPI hanno `detail` come lista). */
+function apiError(data, fallbackKey) {
+  return data && typeof data.detail === "string" ? data.detail : I18N.t(fallbackKey);
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await I18N.ready;
   const params = new URLSearchParams(location.search);
 
   // Arrivati dal link di conferma: valida il token SERVER-SIDE (marca confirmed
@@ -18,22 +27,23 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 async function confirmAndShow(token) {
-  const box = document.getElementById("contatti");
   try {
-    const r = await fetch(`/api/confirm?token=${encodeURIComponent(token)}`);
+    const r = await fetch(`/api/confirm?token=${encodeURIComponent(token)}`, { headers: I18N.headers() });
     const data = await r.json();
     if (!r.ok || data.status !== "confirmed") {
-      showLandingError(box, (data.detail || "link di conferma non valido") + " — il lead è ancora pendente.");
+      showLandingError(I18N.t("web.app.still_pending", { reason: apiError(data, "web.app.confirm_invalid") }));
       return;
     }
     // conferma ok: mostra lo scan
-    showScan(token, data.url || localStorage.getItem("siteiq_scan_url") || "");
+    let storedUrl = "";
+    try { storedUrl = localStorage.getItem("siteiq_scan_url") || ""; } catch { /* storage non disponibile */ }
+    showScan(token, data.url || storedUrl);
   } catch (e) {
-    showLandingError(box, "Impossibile verificare la conferma. Riprova.");
+    showLandingError(I18N.t("web.app.confirm_failed"));
   }
 }
 
-function showLandingError(parent, msg) {
+function showLandingError(msg) {
   // rende visibile la sezione contatti e il suo errore
   const stage = $("#stage-lead");
   if (stage) stage.hidden = false;
@@ -53,24 +63,24 @@ function initLeadForm() {
     error.hidden = true;
     const url = urlInput.value.trim();
     const email = emailInput.value.trim();
-    if (!isValidUrl(url)) return showError(error, "Inserisci un URL valido (https://…)");
-    if (!isValidEmail(email)) return showError(error, "Inserisci una email valida.");
+    if (!isValidUrl(url)) return showError(error, I18N.t("web.app.url_invalid"));
+    if (!isValidEmail(email)) return showError(error, I18N.t("web.app.email_invalid"));
 
     try {
       const r = await fetch("/api/lead", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: I18N.headers({ "Content-Type": "application/json" }),
         body: JSON.stringify({ email, url }),
       });
       const data = await r.json();
-      if (!r.ok) return showError(error, data.detail || "Errore durante la richiesta.");
+      if (!r.ok) return showError(error, apiError(data, "web.app.request_failed"));
       // memorizza il sito per lo stadio scan (riletto dopo la conferma)
-      localStorage.setItem("siteiq_scan_url", url);
+      try { localStorage.setItem("siteiq_scan_url", url); } catch { /* storage non disponibile */ }
       $("#wait-email").textContent = email;
       $("#stage-lead").hidden = true;
       $("#stage-wait").hidden = false;
     } catch (err) {
-      showError(error, "Impossibile contattare il server. Riprova.");
+      showError(error, I18N.t("web.app.server_unreachable"));
     }
   });
 
@@ -85,7 +95,7 @@ function showScan(token, url) {
   $("#stage-lead").hidden = true;
   $("#stage-wait").hidden = true;
   $("#stage-scan").hidden = false;
-  $("#scan-url").textContent = url || "il tuo sito";
+  $("#scan-url").textContent = url || I18N.t("web.app.your_site");
   $("#scan-btn").addEventListener("click", () => runScan(token));
 }
 
@@ -95,22 +105,22 @@ async function runScan(token) {
   err.hidden = true;
   btn.disabled = true;
   $("#scan-progress").hidden = false;
-  $("#scan-status").textContent = "Avvio dell'analisi…";
+  $("#scan-status").textContent = I18N.t("web.app.scan_starting");
   try {
     const r = await fetch("/api/scan", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: I18N.headers({ "Content-Type": "application/json" }),
       body: JSON.stringify({ token }),
     });
     const data = await r.json();
     if (!r.ok) {
-      showError(err, data.detail || "Non puoi avviare l'analisi.");
+      showError(err, apiError(data, "web.app.scan_not_allowed"));
       btn.disabled = false;
       return;
     }
     await pollScan(data.job_id);
   } catch (e2) {
-    showError(err, "Errore di rete. Riprova.");
+    showError(err, I18N.t("web.app.network_error"));
     btn.disabled = false;
   }
 }
@@ -118,21 +128,21 @@ async function runScan(token) {
 async function pollScan(jobId) {
   const statusEl = $("#scan-status");
   for (let i = 0; i < 90; i++) {
-    const r = await fetch(`/api/scan/${jobId}`);
+    const r = await fetch(`/api/scan/${encodeURIComponent(jobId)}`, { headers: I18N.headers() });
     const j = await r.json();
-    if (!j.status) throw new Error("risposta non valida");
+    if (!j.status) throw new Error("invalid response");
     if (j.status === "done") {
-      statusEl.textContent = "Analisi completata.";
+      statusEl.textContent = I18N.t("web.app.scan_done");
       renderReport(j.result);
       return;
     }
     if (j.status === "error") {
-      statusEl.textContent = "Analisi fallita.";
-      showError($("#scan-error"), j.error || "Errore durante l'analisi.");
+      statusEl.textContent = I18N.t("web.app.scan_failed");
+      showError($("#scan-error"), j.error || I18N.t("web.app.scan_error"));
       return;
     }
-    statusEl.textContent = "L'AI sta analizzando il tuo sito…";
+    statusEl.textContent = I18N.t("web.app.scan_running");
     await sleep(2000);
   }
-  statusEl.textContent = "Tempo scaduto. Ricarica e riprova.";
+  statusEl.textContent = I18N.t("web.app.scan_timeout");
 }

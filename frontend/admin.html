@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SiteIQ — Admin</title>
+  <title data-i18n="web.admin.title">SiteIQ — Admin</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f7f6f3'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%231e7b4c'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,75 +16,80 @@
     <header class="site-header">
       <div class="container">
         <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>SiteIQ</a>
-        <div class="header-status"><span class="dot" aria-hidden="true"></span>pannello admin</div>
+        <div class="header-status"><span class="dot" aria-hidden="true"></span><span data-i18n="web.admin.status">pannello admin</span></div>
+        <div class="lang-switch" role="group" aria-label="Lingua" data-i18n-attr="aria-label:web.common.language">
+          <button type="button" data-set-locale="it-IT" lang="it">IT</button>
+          <button type="button" data-set-locale="en-GB" lang="en">EN</button>
+        </div>
       </div>
     </header>
 
     <main class="admin">
-      <h1>Pannello admin</h1>
+      <h1 data-i18n="web.admin.heading">Pannello admin</h1>
 
       <div class="token-bar">
-        <label for="admin-token" class="visually-hidden">Chiave di accesso</label>
-        <input type="password" id="admin-token" placeholder="Chiave di accesso admin" autocomplete="off">
-        <button class="btn btn-ghost" id="save-token">Salva</button>
+        <label for="admin-token" class="visually-hidden" data-i18n="web.admin.token_label">Chiave di accesso</label>
+        <input type="password" id="admin-token" placeholder="Chiave di accesso admin" autocomplete="off" data-i18n-attr="placeholder:web.admin.token_placeholder">
+        <button class="btn btn-ghost" id="save-token" data-i18n="web.admin.save">Salva</button>
       </div>
 
       <div class="admin-panel">
-        <h2>Nuova analisi</h2>
+        <h2 data-i18n="web.admin.new_analysis">Nuova analisi</h2>
         <form class="admin-form" id="admin-form">
           <div class="field">
-            <label for="admin-url">URL da analizzare</label>
-            <input type="url" id="admin-url" placeholder="https://iltuosito.it" required>
+            <label for="admin-url" data-i18n="web.admin.url_label">URL da analizzare</label>
+            <input type="url" id="admin-url" placeholder="https://iltuosito.it" required data-i18n-attr="placeholder:web.common.url_placeholder">
           </div>
           <div class="field">
-            <label for="admin-llm">Motore</label>
+            <label for="admin-llm" data-i18n="web.admin.engine">Motore</label>
             <select id="admin-llm">
-              <option value="openrouter">OpenRouter (AI reale)</option>
-              <option value="stub">Stub (test, gratis)</option>
+              <option value="openrouter" data-i18n="web.admin.engine_openrouter">OpenRouter (AI reale)</option>
+              <option value="stub" data-i18n="web.admin.engine_stub">Stub (test, gratis)</option>
             </select>
           </div>
-          <button type="submit" class="btn btn-primary">Avvia analisi</button>
+          <button type="submit" class="btn btn-primary" data-i18n="web.admin.start">Avvia analisi</button>
         </form>
         <p class="admin-msg" id="admin-msg" role="status" aria-live="polite"></p>
         <div class="report-out" id="report-out" hidden>
-          <h2>Risultato</h2>
+          <h2 data-i18n="web.admin.result">Risultato</h2>
           <pre id="report-pre"></pre>
         </div>
       </div>
 
       <div class="admin-panel">
-        <h2>Consumo</h2>
+        <h2 data-i18n="web.admin.usage">Consumo</h2>
         <div class="usage-grid" id="usage-grid"></div>
-        <h2>Ultime richieste</h2>
-        <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Ultime richieste"><table class="log" id="usage-table">
-          <thead><tr><th>Quando</th><th>Client</th><th>URL</th><th>Stato</th><th>Token</th><th>Costo $</th></tr></thead>
+        <h2 data-i18n="web.admin.recent_requests">Ultime richieste</h2>
+        <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Ultime richieste" data-i18n-attr="aria-label:web.admin.recent_requests"><table class="log" id="usage-table">
+          <thead><tr><th data-i18n="web.admin.col_when">Quando</th><th data-i18n="web.admin.col_client">Client</th><th data-i18n="web.admin.col_url">URL</th><th data-i18n="web.admin.col_status">Stato</th><th data-i18n="web.admin.col_tokens">Token</th><th data-i18n="web.admin.col_cost">Costo $</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>
 
       <div class="admin-panel">
-        <h2>Report salvati</h2>
-        <p class="form-hint">Clicca su un report per aprirlo in una nuova scheda e valutarlo.</p>
-        <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Report salvati"><table class="log" id="reports-table">
-          <thead><tr><th>Report</th><th>Dimensione</th><th>Generato</th></tr></thead>
+        <h2 data-i18n="web.admin.saved_reports">Report salvati</h2>
+        <p class="form-hint" data-i18n="web.admin.reports_hint">Clicca su un report per aprirlo in una nuova scheda e valutarlo.</p>
+        <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Report salvati" data-i18n-attr="aria-label:web.admin.saved_reports"><table class="log" id="reports-table">
+          <thead><tr><th data-i18n="web.admin.col_report">Report</th><th data-i18n="web.admin.col_size">Dimensione</th><th data-i18n="web.admin.col_generated">Generato</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>
 
       <div class="admin-panel">
-        <h2>Lead (landing)</h2>
-        <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Lead dalla landing"><table class="log" id="leads-table">
-          <thead><tr><th>Quando</th><th>Email</th><th>URL</th><th>Stato</th><th>Scan usato</th></tr></thead>
+        <h2 data-i18n="web.admin.leads">Lead (landing)</h2>
+        <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Lead dalla landing" data-i18n-attr="aria-label:web.admin.leads_region"><table class="log" id="leads-table">
+          <thead><tr><th data-i18n="web.admin.col_when">Quando</th><th data-i18n="web.admin.col_email">Email</th><th data-i18n="web.admin.col_url">URL</th><th data-i18n="web.admin.col_status">Stato</th><th data-i18n="web.admin.col_scan_used">Scan usato</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container"><span>© 2026 SiteIQ · admin</span></div>
+      <div class="container"><span data-i18n="web.admin.footer">© 2026 SiteIQ · admin</span></div>
     </footer>
   </div>
 
+  <script src="/static/i18n.js"></script>
   <script src="/static/admin.js"></script>
 </body>
 </html>

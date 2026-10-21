@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# SiteIQ
+node_modules/
+reports/
+*.db
+.impeccable/
+
+# Client deliverables (not for the public repo)
+docs/*.pdf

@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siteiq.local/schema/final_report.schema.json",
+  "title": "FinalReport",
+  "description": "Output del LLM (Hermes) conforme a questo schema. Obbligatorio: ogni recommendation porta evidence_ref verso un finding del crawl_report grezzo (regola anti-allucinazione).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "url", "generated_at", "summary", "scores", "priorities", "recommendations"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "url": { "type": "string", "format": "uri" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "highlights", "most_urgent"],
+      "properties": {
+        "verdict": { "type": "string", "minLength": 1 },
+        "highlights": { "type": "array", "items": { "type": "string" } },
+        "most_urgent": { "type": "string" }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["development", "seo", "security", "accessibility", "performance"],
+      "properties": {
+        "development":    { "$ref": "#/$defs/score" },
+        "seo":            { "$ref": "#/$defs/score" },
+        "security":       { "$ref": "#/$defs/score" },
+        "accessibility":  { "$ref": "#/$defs/score" },
+        "performance":    { "$ref": "#/$defs/score" }
+      }
+    },
+    "priorities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/priority" }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/recommendation" }
+    },
+    "checks": {
+      "description": "Dettaglio per-categoria calcolato in post-processing deterministico (non dal LLM). Ogni categoria contiene verifiche con severita'.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/check" }
+      }
+    },
+    "wordpress_security": {
+      "description": "Esito WPVulnerability per i siti WordPress: versione core, plugin e relativi problemi noti.",
+      "type": "object"
+    },
+    "areas": {
+      "description": "Valutazione delle 17 aree (tipo report agenzia): each con voto 0-10, analisi, punti di forza, criticità ed evidenza.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/area" }
+    },
+    "overall": {
+      "description": "Sintesi finale: voto 0-10, verdetto e 7 macro-aree consolidate.",
+      "type": "object",
+      "properties": {
+        "score10": { "type": "number", "minimum": 0, "maximum": 10 },
+        "verdict": { "type": "string" },
+        "macro_areas": { "type": "object" }
+      }
+    },
+    "action_plan": {
+      "description": "Piano d'azione a scadenze (0-30 / 30-90 / 90-365 giorni).",
+      "type": "object",
+      "properties": {
+        "immediate_0_30": { "type": "array", "items": { "type": "string" } },
+        "medium_30_90": { "type": "array", "items": { "type": "string" } },
+        "long_90_365": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "opportunities": {
+      "description": "Opportunità principali con beneficio e priorità.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/opportunity" }
+    },
+    "glossary": {
+      "description": "Glossario dei termini tecnici usati nel report (per un pubblico non tecnico).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "term": { "type": "string" },
+          "definition": { "type": "string" }
+        }
+      }
+    },
+    "commercial_proposal": {
+      "description": "Proposta commerciale testuale (solo se configurata).",
+      "type": ["object", "null"]
+    }
+  },
+  "$defs": {
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "grade"],
+      "properties": {
+        "value": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "grade": { "enum": ["A", "B", "C", "D", "F"] }
+      }
+    },
+    "priority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "title", "evidence_refs"],
+      "properties": {
+        "level": { "enum": ["P0", "P1", "P2"] },
+        "title": { "type": "string", "minLength": 1 },
+        "evidence_refs": {
+          "type": "array",
+          "description": "Riferimenti a find e/o page del crawl_report (es. \"p001.accessibility.violations[0].id\"). Almeno uno.",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["priority", "title", "detail", "evidence_ref", "effort"],
+      "properties": {
+        "priority": { "enum": ["P0", "P1", "P2"] },
+        "title": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string", "minLength": 1 },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "effort": { "enum": ["low", "medium", "high"] }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "status", "detail"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["ok", "warn", "error"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "score10", "analysis", "strengths", "weaknesses"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "score10": { "type": "number", "minimum": 0, "maximum": 10 },
+        "analysis": { "type": "string", "minLength": 1 },
+        "strengths": { "type": "array", "items": { "type": "string" } },
+        "weaknesses": { "type": "array", "items": { "type": "string" } },
+        "evidence_ref": { "type": ["string", "null"] }
+      }
+    },
+    "opportunity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "benefit", "priority"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "benefit": { "type": "string", "minLength": 1 },
+        "priority": { "enum": ["High", "Medium", "Strategic"] }
+      }
+    }
+  }
+}
